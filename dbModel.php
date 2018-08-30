@@ -27,7 +27,7 @@ abstract class dbModel {
         $objects = [];
         $result = $this->execute();
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-           array_push($objects, (new $this)->fill($row));
+           array_push($objects, (new $this($this->_db))->fill($row));
         }
 
         if (empty($objects) && $throw) {
