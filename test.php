@@ -1,5 +1,9 @@
 <?php
 
+require 'dbModel.php';
+require 'dbModelMeta.php';
+require 'User.php';
+
 // echo (new User())
 //     ->fill([
 //         'firstname' => 'Colja',

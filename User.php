@@ -1,6 +1,6 @@
 <?php
 
-class User extends dbModel {
+class User extends dbModelMeta {
 
     public $username;
     public $firstname;

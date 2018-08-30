@@ -1,48 +1,8 @@
 <?php
 
-/*
-Usage:
-
-# INDEX
-$users = (new User())->all();
-
-# READ
-$user = (new User())
-    ->find($id, true);
-
-# CREATE
-$new_user = (new User())
-    ->fill($data)
-    ->fill([
-        'created_by' => 100
-    ])
-    ->create();
-
-# SAVE
-$user = (new User())
-    ->find($id, true)
-    ->fill($data)
-    ->fill([
-        'updated_by' => 44
-    ])
-    ->update();
-
-# DESTROY
-$user = (new User())
-    ->find($id, true)
-    ->destroy();
-
-*/
-
 abstract class dbModel {
 
     public $id;
-
-    public $updated_at = 0;
-    public $updated_by = 0;
-
-    public $created_at = 0;
-    public $created_by = 0;
 
     protected $db;
     protected $query;
@@ -126,10 +86,6 @@ abstract class dbModel {
      */
     public function create()
     {
-        $this->created_at = time();
-        $this->updated_at = $this->created_at;
-        $this->updated_by = $this->created_by;
-
         $properties = $this->array();
 
         $keys = implode(',', array_keys($properties));
@@ -150,8 +106,6 @@ abstract class dbModel {
      */
     public function update($throw = false)
     {
-        $this->updated_at = time();
-
         $properties = $this->array();
 
         foreach ($properties as $key => $value) {
