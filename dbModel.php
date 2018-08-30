@@ -2,23 +2,17 @@
 
 abstract class dbModel {
 
-    public $id;
+    protected $_db;
+    protected $_clause;
+    protected $_last_query;
+    protected $_primary_key;
+    protected $_table;
 
-    protected $db;
-    protected $query;
-    protected $clause;
-    protected $last_query;
-
-    public function __construct()
+    public function __construct($db)
     {
-        $this->db = new SQLite3($this->config('database'));
-
-        $this->query = 'SELECT * FROM '.$this->config('table');
-    }
-
-    public function __destruct()
-    {
-        $this->db->close();
+        $this->_db = $db;
+        $this->_table = $this->config('table');
+        $this->_primary_key = $this->config('primary_key');
     }
 
     /**
@@ -67,16 +61,25 @@ abstract class dbModel {
     /**
      * Get first object by primary key
      *
-     * @param int $id Primary key
+     * @param int $primary_key Primary key
      * @param boolean $throw Throw exception if no object is found
      * @throws \Exception No object found
      * @return object Self reference
      */
-    public function find($id, $throw = false)
+    public function find($primary_key, $throw = false)
     {
         return $this
-            ->where('id = ', $id)
+            ->reset_clause($primary_key)
             ->get($throw);
+    }
+
+    public function reset_clause($key = null)
+    {
+        $this->_clause = '';
+        $primary_key = $this->_primary_key;
+        $this->where($primary_key.' = ', $key ?? $this->$primary_key);
+
+        return $this;
     }
 
     /**
@@ -93,8 +96,8 @@ abstract class dbModel {
             array($this, 'quote'), $properties
         )));
 
-        $this->db->exec('INSERT INTO '.$this->config('table').' ('.$keys.') VALUES ('.$values.')');
-        $this->id = $this->db->lastInsertRowID();
+        $this->_db->exec('INSERT INTO '.$this->_table.' ('.$keys.') VALUES ('.$values.')');
+        $this->$primary_key = $this->_db->lastInsertRowID();
 
         return $this;
     }
@@ -104,7 +107,7 @@ abstract class dbModel {
      *
      * @return object Self reference
      */
-    public function update($throw = false)
+    public function update()
     {
         $properties = $this->array();
 
@@ -112,9 +115,9 @@ abstract class dbModel {
             $values[] = $key.' = '.$this->quote($value);
         }
 
-        $result = $this->execute('UPDATE '.$this->config('table').' SET '.implode(',', $values));
+        $result = $this->execute('UPDATE '.$this->_table.' SET '.implode(',', $values));
 
-        if (!$result && $throw) {
+        if (!$result) {
             throw new \Exception('Error while updating %s', get_class($this));
         }
 
@@ -123,7 +126,7 @@ abstract class dbModel {
 
     public function destroy()
     {
-        $result = $this->execute('DELETE FROM '.$this->config('table'));
+        $result = $this->execute('DELETE FROM '.$this->_table);
     }
 
     /**
@@ -152,11 +155,11 @@ abstract class dbModel {
      */
     public function where($column_and_operator, $value)
     {
-        $this->clause .= (stripos($this->clause, 'WHERE') === false)
+        $this->_clause .= (stripos($this->_clause, 'WHERE') === false)
             ? ' WHERE '
             : ' ';
 
-        $this->clause .= $column_and_operator.$this->quote($value);
+        $this->_clause .= $column_and_operator.$this->quote($value);
 
         return $this;
     }
@@ -183,7 +186,7 @@ abstract class dbModel {
             return 'NULL';
         }
         if (is_string($value)) {
-            return '\''.$this->db->escapeString($value).'\'';
+            return '\''.$this->_db->escapeString($value).'\'';
         }
         return $value;
     }
@@ -193,9 +196,10 @@ abstract class dbModel {
      */
     protected function execute($sql = null)
     {
-        $query = ($sql) ? $sql : $this->query;
-        $result = $this->db->query($query.$this->clause);
-        $this->last_query = $query.$this->clause;
+        $query = ($sql) ? $sql : 'SELECT * FROM '.$this->_table;
+        $result = $this->_db->query($query.$this->_clause);
+        $this->_last_query = $query.$this->_clause;
+        $this->reset_clause();
         return $result;
     }
 
