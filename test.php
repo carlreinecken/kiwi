@@ -38,8 +38,8 @@ require 'User.php';
 //     ->update();
 // echo '<p></p>';
 
-// var_dump( (new User())->find(6, true)->);
-// echo '<p></p>';
+var_dump((new User())->find(1, true)->user_created()[1]->array());
+echo '<p></p>';
 
 // echo (new User())
 //     ->where('friend_id = ', 3)
