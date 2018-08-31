@@ -14,13 +14,23 @@ abstract class dbModel {
         $this->_table = $this->config('table');
         $this->_primary_key = $this->config('primary_key');
     }
+    
+    /**
+     * Cast the current object as array
+     *
+     * @return array
+     */
+    public function array()
+    {
+        return json_decode(json_encode($this), true);
+    }
 
     /**
      * Get all objects from the table with current query
      *
-     * @param boolean $throw Throw exception if no object is found
+     * @param boolean Throw exception if no object is found
      * @throws \Exception No objects found
-     * @return object Self reference
+     * @return Self reference
      */
     public function all($throw = false)
     {
@@ -39,9 +49,9 @@ abstract class dbModel {
     /**
      * Get first object with current query
      *
-     * @param boolean $throw Throw exception if no object is found
+     * @param boolean Throw exception if no object is found
      * @throws \Exception No object found
-     * @return object Self reference
+     * @return Self reference
      */
     public function get($throw = false)
     {
@@ -61,31 +71,23 @@ abstract class dbModel {
     /**
      * Get first object by primary key
      *
-     * @param int $primary_key Primary key
-     * @param boolean $throw Throw exception if no object is found
+     * @param Primary key
+     * @param boolean Throw exception if no object is found
      * @throws \Exception No object found
-     * @return object Self reference
+     * @return Self reference
      */
     public function find($primary_key, $throw = false)
     {
         return $this
-            ->reset_clause($primary_key)
+            ->reset_clause()
+            ->where_primary_key($primary_key)
             ->get($throw);
-    }
-
-    public function reset_clause($key = null)
-    {
-        $this->_clause = '';
-        $primary_key = $this->_primary_key;
-        $this->where($primary_key.' = ', $key ?? $this->$primary_key);
-
-        return $this;
     }
 
     /**
      * Insert current object into database and set new primary key
      *
-     * @return object Self reference
+     * @return Self reference
      */
     public function create()
     {
@@ -96,7 +98,12 @@ abstract class dbModel {
             array($this, 'quote'), $properties
         )));
 
-        $this->_db->exec('INSERT INTO '.$this->_table.' ('.$keys.') VALUES ('.$values.')');
+        $result = $this->execute('INSERT INTO '.$this->_table.' ('.$keys.') VALUES ('.$values.')');
+        
+        if (!$result) {
+            throw new \Exception('Error while creating %s', get_class($this));
+        }
+
         $this->$primary_key = $this->_db->lastInsertRowID();
 
         return $this;
@@ -105,7 +112,7 @@ abstract class dbModel {
     /**
      * Update object in database with current object
      *
-     * @return object Self reference
+     * @return Self reference
      */
     public function update()
     {
@@ -115,6 +122,8 @@ abstract class dbModel {
             $values[] = $key.' = '.$this->quote($value);
         }
 
+        $this->where_primary_key();
+        
         $result = $this->execute('UPDATE '.$this->_table.' SET '.implode(',', $values));
 
         if (!$result) {
@@ -124,9 +133,18 @@ abstract class dbModel {
         return $this;
     }
 
-    public function destroy()
+    /**
+     * Delete object in database with current object
+     */
+    public function delete()
     {
+        $this->where_primary_key();
+        
         $result = $this->execute('DELETE FROM '.$this->_table);
+        
+        if (!$result) {
+            throw new \Exception('Error while deleting %s', get_class($this));
+        }
     }
 
     /**
@@ -135,7 +153,7 @@ abstract class dbModel {
      * @param array $data Data to be filled
      * @return object Self reference
      */
-    public function fill(array $data)
+    public function fill($data)
     {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key) && !empty($value)) {
@@ -147,11 +165,11 @@ abstract class dbModel {
     }
 
     /**
-     * Add a where condition to the current query
+     * Append a where condition to the current query
      *
      * @param string $column_and_operator Logical operator, column and a comparison operator
-     * @param any $value The value
-     * @return object Self reference
+     * @param any The value
+     * @return Self reference
      */
     public function where($column_and_operator, $value)
     {
@@ -163,15 +181,30 @@ abstract class dbModel {
 
         return $this;
     }
-
+    
     /**
-     * Cast the current object as array
+     * Append where condition for the primary key
      *
-     * @return array public properties of model
+     * @param any Value for primary key
+     * @return Self reference
      */
-    public function array()
+    protected function where_primary_key($value = null)
     {
-        return json_decode(json_encode($this), true);
+        $primary_key = $this->_primary_key;
+        $value = $value ?? $this->$primary_key;
+        $this->where($primary_key.' = ', $value);
+        return $this;
+    }
+    
+    /**
+     * Reset all where conditions
+     *
+     * @return Self reference
+     */
+    protected function reset_clause()
+    {
+        $this->_clause = '';
+        return $this;
     }
 
     /**
@@ -192,7 +225,10 @@ abstract class dbModel {
     }
 
     /**
-     * Query the current SQL with where conditions
+     * Execute the current SQL with where conditions
+     *
+     * @param string Optional beginning of SQL query
+     * @return The result of the database query
      */
     protected function execute($sql = null)
     {
@@ -216,13 +252,13 @@ abstract class dbModel {
         if ($properties && isset($properties[$name])) {
             return $properties[$name];
         }
-        throw new \Exception(sprintf('No %s set for %s model', $name, get_class($this)));
+        throw new \Exception(sprintf('No static %s set for %s model', $name, get_class($this)));
 
     }
 
     public function __toString()
     {
-        return json_encode($this);
+        return get_class($this).'('.$this->$_primary_key.')';
     }
 
 }
