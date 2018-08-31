@@ -105,21 +105,56 @@ $user->where('age >', 15)
 
 ## Relationships
 
+Relationships can be added in your model as simple functions.
+
 #### One to one
 
-...
+The current model has an id of another entity.
+
+```php
+public function creator()
+{
+    return (new User($this->db))
+        ->find($this->created_by);
+}
+```
 
 #### One to many
 
-...
+Inside an User class:
+
+```php
+public function orders()
+{
+    return (new Orders($this->db))
+        ->where('user_id = ', $this->id)
+        ->all();
+}
+```
 
 #### Many to one
 
-...
+Inside an Orders class:
+
+```php
+public function customer()
+{
+    return (new User($this->db))
+        ->find($this->user_id);
+}
+```
 
 #### Many to many
 
-...
+Inside an User class:
+
+```php
+public function customer()
+{
+    return (new User($this->db))
+        ->find($this->user_id);
+}
+```
 
 ## Utilities
 
