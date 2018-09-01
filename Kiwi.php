@@ -55,7 +55,7 @@ abstract class Kiwi {
         $results = $this->execute()->fetchArray(SQLITE3_ASSOC);
 
         if (!$results) {
-            throw new \Exception(sprintf('No %s found', get_class($this)));
+            throw new \Exception(sprintf('No %s found', $this));
         }
 
         return $this->fill($results);
@@ -108,7 +108,7 @@ abstract class Kiwi {
      */
     public function create()
     {
-        $this->{static::$primary_key} = null;
+        $this->set_primary_key(null);
         $properties = $this->array();
 
         $keys = implode(',', array_keys($properties));
@@ -120,10 +120,10 @@ abstract class Kiwi {
         $result = $this->execute('INSERT INTO '.static::$table.' ('.$keys.') VALUES ('.$values.')');
 
         if (!$result) {
-            throw new \Exception(sprintf('Error while creating %s', get_class($this)));
+            throw new \Exception(sprintf('Error while creating %s', $this));
         }
 
-        $this->{static::$primary_key} = $this->database->lastInsertRowID();
+        $this->set_primary_key($this->database->lastInsertRowID());
 
         return $this;
     }
@@ -147,7 +147,7 @@ abstract class Kiwi {
         $result = $this->execute('UPDATE '.static::$table.' SET '.implode(',', $values));
 
         if (!$result) {
-            throw new \Exception(sprintf('Error while updating %s', get_class($this)));
+            throw new \Exception(sprintf('Error while updating %s', $this));
         }
 
         return $this;
@@ -165,8 +165,9 @@ abstract class Kiwi {
         $result = $this->execute('DELETE FROM '.static::$table);
 
         if (!$result) {
-            throw new \Exception(sprintf('Error while deleting %s', get_class($this)));
+            throw new \Exception(sprintf('Error while deleting %s', $this));
         }
+        return $this;
     }
 
     /**
@@ -212,9 +213,11 @@ abstract class Kiwi {
      */
     protected function where_primary_key($value = null)
     {
+        $value = $value ?? $this->get_primary_key();
+        $this->set_primary_key($value);
         return $this
             ->reset_conditions()
-            ->where(static::$primary_key.' = ', $value ?? $this->{static::$primary_key});
+            ->where(static::$primary_key.' = ', $value);
     }
 
     /**
@@ -269,9 +272,19 @@ abstract class Kiwi {
         return $this->last_query;
     }
 
+    public function set_primary_key($key)
+    {
+        $this->{static::$primary_key} = $key;
+    }
+
+    public function get_primary_key()
+    {
+        return $this->{static::$primary_key};
+    }
+
     public function __toString()
     {
-        return get_class($this).'('.$this->{static::$primary_key}.')';
+        return get_class($this).'('.$this->get_primary_key().')';
     }
 
 }
