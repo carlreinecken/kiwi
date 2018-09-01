@@ -1,13 +1,13 @@
 <?php
 
-class dbModelMeta extends dbModel {
+class KiwiMeta extends Kiwi {
 
     public $updated_at = 0;
     public $updated_by = 0;
     public $created_at = 0;
     public $created_by = 0;
 
-    public function creating_as($key)
+    public function create_as($key)
     {
         $this->created_at = time();
         $this->created_by = $key;
@@ -15,14 +15,18 @@ class dbModelMeta extends dbModel {
         $this->updated_by = $this->created_by;
 
         $this->create();
+
+        return $this;
     }
 
-    public function updating_as($key, $throw = false)
+    public function update_as($key, $throw = false)
     {
         $this->updated_at = time();
         $this->updated_by = $key;
 
         $this->update($throw);
+
+        return $this;
     }
 
 }

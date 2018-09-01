@@ -1,20 +1,21 @@
 <?php
 
-abstract class dbModel {
+/**
+ * Kiwi: A simple abstract database model.
+ *
+ * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
+ */
+abstract class Kiwi {
 
-    protected $_db;
-    protected $_clause;
-    protected $_last_query;
-    protected $_primary_key;
-    protected $_table;
+    protected $database;
+    protected $conditions;
+    protected $last_query;
 
     public function __construct($db)
     {
-        $this->_db = $db;
-        $this->_table = $this->config('table');
-        $this->_primary_key = $this->config('primary_key');
+        $this->database = $db;
     }
-    
+
     /**
      * Cast the current object as array
      *
@@ -28,7 +29,7 @@ abstract class dbModel {
     /**
      * Get all objects from the table with current query
      *
-     * @param boolean Throw exception if no object is found
+     * @param Boolean Throw exception if no object is found
      * @throws \Exception No objects found
      * @return Self reference
      */
@@ -37,7 +38,7 @@ abstract class dbModel {
         $objects = [];
         $result = $this->execute();
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-           array_push($objects, (new $this($this->_db))->fill($row));
+           array_push($objects, (new $this($this->database))->fill($row));
         }
 
         if (empty($objects) && $throw) {
@@ -49,7 +50,7 @@ abstract class dbModel {
     /**
      * Get first object with current query
      *
-     * @param boolean Throw exception if no object is found
+     * @param Boolean Throw exception if no object is found
      * @throws \Exception No object found
      * @return Self reference
      */
@@ -71,15 +72,14 @@ abstract class dbModel {
     /**
      * Get first object by primary key
      *
-     * @param Primary key
-     * @param boolean Throw exception if no object is found
+     * @param Any Primary key
+     * @param Boolean Throw exception if no object is found
      * @throws \Exception No object found
-     * @return Self reference
+     * @return Object Self reference
      */
     public function find($primary_key, $throw = false)
     {
         return $this
-            ->reset_clause()
             ->where_primary_key($primary_key)
             ->get($throw);
     }
@@ -87,7 +87,8 @@ abstract class dbModel {
     /**
      * Insert current object into database and set new primary key
      *
-     * @return Self reference
+     * @throws \Exception Errow while creating
+     * @return Object Self reference
      */
     public function create()
     {
@@ -98,13 +99,14 @@ abstract class dbModel {
             array($this, 'quote'), $properties
         )));
 
-        $result = $this->execute('INSERT INTO '.$this->_table.' ('.$keys.') VALUES ('.$values.')');
-        
+        $this->reset_conditions();
+        $result = $this->execute('INSERT INTO '.static::$table.' ('.$keys.') VALUES ('.$values.')');
+
         if (!$result) {
             throw new \Exception('Error while creating %s', get_class($this));
         }
 
-        $this->$primary_key = $this->_db->lastInsertRowID();
+        $this->{static::$primary_key} = $this->database->lastInsertRowID();
 
         return $this;
     }
@@ -112,7 +114,8 @@ abstract class dbModel {
     /**
      * Update object in database with current object
      *
-     * @return Self reference
+     * @throws \Exception Error while updating
+     * @return Object Self reference
      */
     public function update()
     {
@@ -123,8 +126,8 @@ abstract class dbModel {
         }
 
         $this->where_primary_key();
-        
-        $result = $this->execute('UPDATE '.$this->_table.' SET '.implode(',', $values));
+
+        $result = $this->execute('UPDATE '.static::$table.' SET '.implode(',', $values));
 
         if (!$result) {
             throw new \Exception('Error while updating %s', get_class($this));
@@ -135,13 +138,14 @@ abstract class dbModel {
 
     /**
      * Delete object in database with current object
+     * @throws \Exception Error while deleting
      */
     public function delete()
     {
         $this->where_primary_key();
-        
-        $result = $this->execute('DELETE FROM '.$this->_table);
-        
+
+        $result = $this->execute('DELETE FROM '.static::$table);
+
         if (!$result) {
             throw new \Exception('Error while deleting %s', get_class($this));
         }
@@ -150,8 +154,8 @@ abstract class dbModel {
     /**
      * Set data of current object with array
      *
-     * @param array $data Data to be filled
-     * @return object Self reference
+     * @param Array $data Data to be filled
+     * @return Object Self reference
      */
     public function fill($data)
     {
@@ -164,54 +168,58 @@ abstract class dbModel {
         return $this;
     }
 
+    public function get_last_query()
+    {
+        return $this->last_query;
+    }
+
     /**
      * Append a where condition to the current query
      *
-     * @param string $column_and_operator Logical operator, column and a comparison operator
-     * @param any The value
-     * @return Self reference
+     * @param String $column_and_operator Logical operator, column and a comparison operator
+     * @param Any The value
+     * @return Object Self reference
      */
     public function where($column_and_operator, $value)
     {
-        $this->_clause .= (stripos($this->_clause, 'WHERE') === false)
+        $this->conditions .= (stripos($this->conditions, 'WHERE') === false)
             ? ' WHERE '
             : ' ';
 
-        $this->_clause .= $column_and_operator.$this->quote($value);
+        $this->conditions .= $column_and_operator.$this->quote($value);
 
         return $this;
     }
-    
+
     /**
      * Append where condition for the primary key
      *
-     * @param any Value for primary key
-     * @return Self reference
+     * @param Any Value for primary key
+     * @return Object Self reference
      */
     protected function where_primary_key($value = null)
     {
-        $primary_key = $this->_primary_key;
-        $value = $value ?? $this->$primary_key;
-        $this->where($primary_key.' = ', $value);
-        return $this;
+        return $this
+            ->reset_conditions()
+            ->where(static::$primary_key.' = ', $value ?? $this->{static::$primary_key});
     }
-    
+
     /**
      * Reset all where conditions
      *
-     * @return Self reference
+     * @return Object Self reference
      */
-    protected function reset_clause()
+    protected function reset_conditions()
     {
-        $this->_clause = '';
+        $this->conditions = '';
         return $this;
     }
 
     /**
      * Escape strings and set null values
      *
-     * @param any The unprocessed value
-     * @return any The processed value
+     * @param Any The unprocessed value
+     * @return Any The processed value
      */
     protected function quote($value)
     {
@@ -219,7 +227,7 @@ abstract class dbModel {
             return 'NULL';
         }
         if (is_string($value)) {
-            return '\''.$this->_db->escapeString($value).'\'';
+            return '\''.$this->database->escapeString($value).'\'';
         }
         return $value;
     }
@@ -227,38 +235,21 @@ abstract class dbModel {
     /**
      * Execute the current SQL with where conditions
      *
-     * @param string Optional beginning of SQL query
-     * @return The result of the database query
+     * @param String Optional beginning of SQL query
+     * @return Any The result of the database query
      */
     protected function execute($sql = null)
     {
-        $query = ($sql) ? $sql : 'SELECT * FROM '.$this->_table;
-        $result = $this->_db->query($query.$this->_clause);
-        $this->_last_query = $query.$this->_clause;
-        $this->reset_clause();
+        $query = ($sql) ? $sql : 'SELECT * FROM '.static::$table;
+        $result = $this->database->query($query.$this->conditions);
+        $this->last_query = $query.$this->conditions;
+        $this->reset_conditions();
         return $result;
-    }
-
-    /**
-     * Gets a config property set as static parameters in extended model.
-     *
-     * @param string $name Name of config property
-     * @return string Contents of config property
-     */
-    protected function config($name)
-    {
-        $properties = (new ReflectionClass($this))->getStaticProperties();
-
-        if ($properties && isset($properties[$name])) {
-            return $properties[$name];
-        }
-        throw new \Exception(sprintf('No static %s set for %s model', $name, get_class($this)));
-
     }
 
     public function __toString()
     {
-        return get_class($this).'('.$this->$_primary_key.')';
+        return get_class($this).'('.$this->{static::$primary_key}.')';
     }
 
 }

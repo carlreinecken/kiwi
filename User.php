@@ -1,6 +1,6 @@
 <?php
 
-class User extends dbModelMeta {
+class User extends KiwiMeta {
 
     public $id;
     public $username;
@@ -11,7 +11,6 @@ class User extends dbModelMeta {
 
     static $table = 'users';
     static $primary_key = 'id';
-    // static $relations = ['friend' => 'friends'];
 
     public function friend()
     {

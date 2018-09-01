@@ -1,22 +1,21 @@
-# dbModel
+# Kiwi
 
-One-file php class that any model can extend from to represent a database entity.
+A simple abstract database model. Any model can extend from Kiwi to represent a database entity.
 
 ## Setup
 
-The model should extend from dbModel and should have all database table properties as public class variables.
+The model should extend from Kiwi and should have all database table properties as public class variables.
 
-The table name can be defined by a static class variable `$table`.
-
-The table must have as unique key an `id` field.
+The table name and the primary key has to be defined with a static class variable:
 
 ```php
-class User extends dbModel {
+class User extends Kiwi {
 
     public $name;
     public $age;
 
     static $table = 'users';
+    static $primary_key = 'id';
 
     ...
 }
@@ -32,7 +31,7 @@ $user = new User($db);
 
 #### Find
 
-Find one user by the primary key `id` (which is currently not configurable):
+Find one user by the primary key:
 
 ```php
 $id = 44;
@@ -99,9 +98,7 @@ $user->where('age >', 15)
     ->all();
 ```
 
-**Caution:** Calling `find()` after your own where conditions will fail, because it doesn't connect with an operator. Use `get()` instead.
-
-**Caution:** The where clause that was built, will be reset after calling an executing method. After the entity was found it should have a unique key which should be enough to identify it for future operations.
+**Caution:** Every execution will  reset the where conditions. After an entity was found it should have a primary key, which should be enough to identify it from that moment on. The functions `find()`, `create()` `update()` and `delete()` will ignore all custom where conditions, because they can't use one or only work with a primary key.  Use `get()` instead of `find()` when you want to get the first entity for your where condition.
 
 ## Relationships
 
@@ -121,7 +118,7 @@ public function creator()
 
 #### One to many
 
-Inside an User class:
+Inside an Users class:
 
 ```php
 public function orders()
@@ -146,7 +143,7 @@ public function customer()
 
 #### Many to many
 
-Inside an User class:
+Inside an Users class:
 
 ```php
 public function customer()
@@ -170,9 +167,9 @@ print_r($user->array());
 
 After executing the last sql statement is saved inside the `$last_query` property.
 
-## Extra: dbModelMeta
+## Extra: KiwiMeta
 
-dbModelMeta extends from dbModel and adds some convenient public properties to your model (that also need to be present in the database table):
+KiwiMeta extends from Kiwi and adds some convenient public properties to your model (that also need to be present in the database table):
 
 * updated_at
 * updated_by

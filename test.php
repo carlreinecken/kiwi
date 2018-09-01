@@ -1,50 +1,72 @@
 <?php
 
-require 'dbModel.php';
-require 'dbModelMeta.php';
+require 'Kiwi.php';
+require 'KiwiMeta.php';
 require 'User.php';
 
 $db = new SQLite3('db.sqlite');
 
-// echo (new User($db))
-//     ->fill([
-//         'firstname' => 'Colja',
-//         'lastname' => 'Peters',
-//         'friend_id' => 6
-//     ])
-//     ->create();
-// echo '<p></p>';
+function print_row($row) {
+    ?>
+    <tr>
+        <?php foreach ($row as $value): ?>
+            <td><?=$value?></td>
+        <?php endforeach; ?>
+    </tr>
+    <?php
+}
 
-// print_r((new User($db))
-//     ->where('friend_id = ', 2)
-//     ->where('and lastname = ', 'Gump')
-//     ->all());
-// echo '<p></p>';
-// foreach ((new User($db))->all() as $value) {
-//     echo $value;
-// }
-// echo '<p></p>';
-//
-// echo (new User($db))
-//     ->find(7, true)
-//     ->destroy();
+function print_table($array, $title, $query = '') {
+    ?>
+    <h3><?=$title?></h3>
+    <pre>
+        <?=$query?>
+    </pre>
+    <table border="1">
+        <tr>
+            <?php foreach ($array[0] as $key => $v): ?>
+                <th><?=$key?></th>
+            <?php endforeach; ?>
+        </tr>
+        <?php foreach ($array as $row): ?>
+            <?=print_row($row)?>
+        <?php endforeach; ?>
+    </table>
+    <?php
+}
 
-// echo (new User($db))
-//     ->find(4)
-//     ->fill([
-//         'firstname' => 'Lars'
-//     ])
-//     ->fill([
-//         'updated_by' => 100
-//     ])
-//     ->update();
-// echo '<p></p>';
+echo '<h1>Kiwi: A simple abstract database model</h1>';
 
-var_dump((new User($db))->find(1, true));
-// var_dump((new User($db))->find(1, true)->user_created()[1]->array());
-echo '<p></p>';
+$me = (new User($db))->find(1);
+print_table([$me->array()], 'My user', $me->get_last_query());
 
-// echo (new User($db))
-//     ->where('friend_id = ', 3)
-//     ->get();
-// echo '<p></p>';
+print_table($me->all(), 'All users', $me->get_last_query());
+
+$me->where('friend_id = ', 2)
+    ->where('AND firstname LIKE ', '%ar%');
+print_table($me->all(), 'Filtered all users by friend_id and firstname', $me->get_last_query());
+
+$new_user = (new User($db))
+    ->fill([
+        'firstname' => 'Gustav',
+        'lastname' => 'Peters',
+        'friend_id' => 44,
+        'username' => 'GP'
+    ])
+    ->create_as($me->id);
+print_table((new User($db))->all(), 'Added Gustav with id '.$new_user->id, $new_user->get_last_query());
+
+$new_user
+    ->fill([
+        'lastname' => 'Kaufmann',
+        'username' => 'GK'
+    ])
+    ->update();
+print_table((new User($db))->all(), 'Lastname and username of Gustav updated', $new_user->get_last_query());
+
+$gustav = (new User($db))
+    ->find($new_user->id);
+print_table([$gustav->array()], 'Find Gustav', $gustav->get_last_query());
+
+$gustav->delete();
+print_table((new User($db))->all(), 'Delete Gustav', $gustav->get_last_query());
