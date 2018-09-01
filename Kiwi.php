@@ -17,9 +17,9 @@ abstract class Kiwi {
     }
 
     /**
-     * Cast the current object as array
+     * Cast the current object to an array
      *
-     * @return array
+     * @return Array
      */
     public function array()
     {
@@ -33,7 +33,7 @@ abstract class Kiwi {
      * @throws \Exception No objects found
      * @return Self reference
      */
-    public function all($throw = false)
+    public function all()
     {
         $objects = [];
         $result = $this->execute();
@@ -41,27 +41,21 @@ abstract class Kiwi {
            array_push($objects, (new $this($this->database))->fill($row));
         }
 
-        if (empty($objects) && $throw) {
-            throw new \Exception(sprintf('No %s found', get_class($this)));
-        }
         return $objects;
     }
 
     /**
      * Get first object with current query
      *
-     * @param Boolean Throw exception if no object is found
      * @throws \Exception No object found
-     * @return Self reference
+     * @return Object Self reference
      */
-    public function get($throw = false)
+    public function first_or_fail()
     {
         $results = $this->execute()->fetchArray(SQLITE3_ASSOC);
 
-        if (!$results && $throw) {
+        if (!$results) {
             throw new \Exception(sprintf('No %s found', get_class($this)));
-        } else if (!$results) {
-            $results = [];
         }
 
         $this->fill($results);
@@ -70,18 +64,42 @@ abstract class Kiwi {
     }
 
     /**
+     * Get first object with current query
+     *
+     * @return Object Self reference
+     */
+    public function first()
+    {
+        try {
+            $this->first_or_fail();
+        } catch (\Exception $e) {}
+
+        return $this;
+    }
+
+    /**
      * Get first object by primary key
      *
      * @param Any Primary key
-     * @param Boolean Throw exception if no object is found
+     * @return Object Self reference
+     */
+    public function find($primary_key)
+    {
+        $this->where_primary_key($primary_key);
+        return $this->first();
+    }
+
+    /**
+     * Get first object by primary key
+     *
+     * @param Any Primary key
      * @throws \Exception No object found
      * @return Object Self reference
      */
-    public function find($primary_key, $throw = false)
+    public function find_or_fail($primary_key)
     {
-        return $this
-            ->where_primary_key($primary_key)
-            ->get($throw);
+        $this->where_primary_key($primary_key);
+        return $this->first_or_fail();
     }
 
     /**
@@ -103,7 +121,7 @@ abstract class Kiwi {
         $result = $this->execute('INSERT INTO '.static::$table.' ('.$keys.') VALUES ('.$values.')');
 
         if (!$result) {
-            throw new \Exception('Error while creating %s', get_class($this));
+            throw new \Exception(sprintf('Error while creating %s', get_class($this)));
         }
 
         $this->{static::$primary_key} = $this->database->lastInsertRowID();
@@ -130,14 +148,15 @@ abstract class Kiwi {
         $result = $this->execute('UPDATE '.static::$table.' SET '.implode(',', $values));
 
         if (!$result) {
-            throw new \Exception('Error while updating %s', get_class($this));
+            throw new \Exception(sprintf('Error while updating %s', get_class($this)));
         }
 
         return $this;
     }
 
     /**
-     * Delete object in database with current object
+     * Delete object in database with current primary key
+     *
      * @throws \Exception Error while deleting
      */
     public function delete()
@@ -147,7 +166,7 @@ abstract class Kiwi {
         $result = $this->execute('DELETE FROM '.static::$table);
 
         if (!$result) {
-            throw new \Exception('Error while deleting %s', get_class($this));
+            throw new \Exception(sprintf('Error while deleting %s', get_class($this)));
         }
     }
 
@@ -166,11 +185,6 @@ abstract class Kiwi {
         }
 
         return $this;
-    }
-
-    public function get_last_query()
-    {
-        return $this->last_query;
     }
 
     /**
@@ -245,6 +259,15 @@ abstract class Kiwi {
         $this->last_query = $query.$this->conditions;
         $this->reset_conditions();
         return $result;
+    }
+
+    /**
+     * GETTER
+     */
+
+    public function get_last_query()
+    {
+        return $this->last_query;
     }
 
     public function __toString()
