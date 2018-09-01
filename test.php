@@ -38,13 +38,13 @@ function print_table($array, $title, $query = '') {
 echo '<h1>Kiwi: A simple abstract database model</h1>';
 
 $me = (new User($db))->find(1);
-print_table([$me->array()], 'My user', $me->get_last_query());
+print_table([$me->array()], 'My user', $me->last_query());
 
-print_table($me->all(), 'All users', $me->get_last_query());
+print_table($me->all(), 'All users', $me->last_query());
 
 $me->where('friend_id = ', 2)
     ->where('AND firstname LIKE ', '%ar%');
-print_table($me->all(), 'Filtered all users by friend_id and firstname', $me->get_last_query());
+print_table($me->all(), 'Filtered all users by friend_id and firstname', $me->last_query());
 
 $new_user = (new User($db))
     ->fill([
@@ -54,7 +54,7 @@ $new_user = (new User($db))
         'username' => 'GP'
     ])
     ->create_as($me->id);
-print_table((new User($db))->all(), 'Added Gustav with id '.$new_user->id, $new_user->get_last_query());
+print_table((new User($db))->all(), 'Added Gustav with id '.$new_user->id, $new_user->last_query());
 
 $new_user
     ->fill([
@@ -62,11 +62,11 @@ $new_user
         'username' => 'GK'
     ])
     ->update();
-print_table((new User($db))->all(), 'Lastname and username of Gustav updated', $new_user->get_last_query());
+print_table((new User($db))->all(), 'Lastname and username of Gustav updated', $new_user->last_query());
 
 $gustav = (new User($db))
     ->find($new_user->id);
-print_table([$gustav->array()], 'Find Gustav', $gustav->get_last_query());
+print_table([$gustav->array()], 'Find Gustav', $gustav->last_query());
 
 $gustav->delete();
-print_table((new User($db))->all(), 'Delete Gustav', $gustav->get_last_query());
+print_table((new User($db))->all(), 'Delete Gustav', $gustav->last_query());

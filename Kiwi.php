@@ -265,7 +265,7 @@ abstract class Kiwi {
      * GETTER
      */
 
-    public function get_last_query()
+    public function last_query()
     {
         return $this->last_query;
     }
