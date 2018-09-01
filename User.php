@@ -15,7 +15,7 @@ class User extends KiwiMeta {
     public function friend()
     {
         return (new $this($this->database))
-            ->find($this->friend_id);
+            ->find_or_fail($this->friend_id);
     }
 
     public function creator()

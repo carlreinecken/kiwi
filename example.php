@@ -128,6 +128,20 @@ print_table([$friend_of_gustav]);
 
 // -----------------------------------------------------------------------------
 ?>
+<h3>Friend of friend of Gustav should throw error</h3>
+<pre>
+    $friend_of_friend_of_gustav = $friend_of_gustav->friend();
+</pre>
+<?php
+try {
+    $friend_of_friend_of_gustav = $friend_of_gustav->friend();
+    echo '<p>No error?</p>';
+} catch (\Exception $e) {
+    echo '<p>'.$e->getMessage().'</p>';
+}
+
+// -----------------------------------------------------------------------------
+?>
 <h3>Delete Gustav</h3>
 <pre>
     $gustav = (new User($db))
