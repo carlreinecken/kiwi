@@ -58,9 +58,7 @@ abstract class Kiwi {
             throw new \Exception(sprintf('No %s found', get_class($this)));
         }
 
-        $this->fill($results);
-
-        return $this;
+        return $this->fill($results);
     }
 
     /**
@@ -110,6 +108,7 @@ abstract class Kiwi {
      */
     public function create()
     {
+        $this->{static::$primary_key} = null;
         $properties = $this->array();
 
         $keys = implode(',', array_keys($properties));

@@ -9,8 +9,8 @@ class User extends KiwiMeta {
 
     public $friend_id;
 
-    static $table = 'users';
-    static $primary_key = 'id';
+    protected static $table = 'users';
+    protected static $primary_key = 'id';
 
     public function friend()
     {
@@ -24,7 +24,7 @@ class User extends KiwiMeta {
             ->find($this->created_by);
     }
 
-    public function user_created()
+    public function created_user()
     {
         return (new $this($this->database))
             ->where('created_by = ', $this->id)

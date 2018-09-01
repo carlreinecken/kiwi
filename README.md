@@ -186,27 +186,6 @@ public function orders()
 }
 ```
 
-#### Many to one
-
-```php
-<?php
-... // Order Class
-
-public function customer()
-{
-    return (new User($this->db))
-        ->find($this->user_id);
-}
-```
-
-#### Many to many
-
-```php
-<?php
-
-...
-```
-
 ## Utilities
 
 #### Array
@@ -243,7 +222,8 @@ You can use them with the functions `create_as()` or `update_as()`:
 ```php
 <?php
 
-$gustav = (new User($db))->find(44)
+$gustav = (new User($db))
+    ->find(44)
     ->fill([
         'age' => $user->age * 2
     ])
@@ -255,7 +235,8 @@ $gustav = (new User($db))->find(44)
 ```php
 <?php
 
-$gustav = (new User($db))->fill([
+$gustav = (new User($db))
+    ->fill([
         'name' => 'Gustav',
         'age' => 44
     ])

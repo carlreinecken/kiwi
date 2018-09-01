@@ -14,19 +14,15 @@ class KiwiMeta extends Kiwi {
         $this->updated_at = $this->created_at;
         $this->updated_by = $this->created_by;
 
-        $this->create();
-
-        return $this;
+        return $this->create();
     }
 
-    public function update_as($key, $throw = false)
+    public function update_as($key)
     {
         $this->updated_at = time();
         $this->updated_by = $key;
 
-        $this->update($throw);
-
-        return $this;
+        return $this->update();
     }
 
 }
