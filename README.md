@@ -1,14 +1,16 @@
 # Kiwi
 
-A simple abstract database model. Any model can extend from Kiwi to represent a database entity.
+A simple abstract SQLite3 database model. Any model can extend from Kiwi to represent a database entity.
 
 ## Setup
 
 The model should extend from Kiwi and should have all database table properties as public class variables.
 
-The table name and the primary key has to be defined with a static class variable:
+The table name and the primary key has to be defined with a static class variable.
 
 ```php
+<?php
+
 class User extends Kiwi {
 
     public $name;
@@ -21,84 +23,135 @@ class User extends Kiwi {
 }
 ```
 
-Pass your database object on each new instance:
+Pass the SQLite3 object on each new model instance:
 
 ```php
+<?php
+
 $user = new User($db);
 ```
 
-## Basics
+## Basics: Read
 
 #### Find
 
-Find one user by the primary key:
+Find a user by primary key:
 
 ```php
-$id = 44;
-$user->find($id);
+<?php
+
+$user->find(44);
 ```
 
-If you need an exception when no user is found, pass `true` as second argument to `find()`:
+If you need an exception when no user is found, call `find_or_fail()` instead.
+
+#### First
+
+Get first user:
 
 ```php
-try {
-    $user->find($id, true);
-} catch (\Exception $e) {
-    echo $e;
-}
+<?php
+
+$user->first();
 ```
+
+This example returns literally the first object of the database table, so it makes only sense to use `first()` in combination with where conditions.
+
+If you need an exception when no user is found, call `first_or_fail()` instead.
 
 #### All
 
-Return an array of all Users:
+Return an array of all users:
 
 ```php
-$user->all();
+<?php
+
+$users = $user->all();
 ```
 
-If you need an exception when no User are found, pass `true` as argument to `all()`.
+When no users are found it will return an empty array.
 
-#### Create
-
-```php
-$data = [
-    'name' = 'Gustav',
-    'age' = 21
-];
-$new_user = (new User($db))
-    ->fill($data)
-    ->create();
-```
-
-After creating `$new_user` the new id is automatically saved to the model.
-
-#### Update
-
-```php
-$data = [
-    'age' = $user->age + 1
-];
-$user->fill($data)
-    ->update();
-```
-
-#### Destroy
-
-```php
-$user->destroy();
-```
+The model instance on which `all()` was called will not be changed.
 
 #### Where Conditions
 
 Call as many where conditions as you like before calling one of the executing functions:
 
 ```php
-$user->where('age >', 15)
+<?php
+
+$users = $user->where('age >', 15)
     ->where('AND age <', 54)
     ->all();
+
+$young_dude = (new User($db))
+    ->where('age =', 15)
+    ->first_or_fail();
 ```
 
-**Caution:** Every execution will  reset the where conditions. After an entity was found it should have a primary key, which should be enough to identify it from that moment on. The functions `find()`, `create()` `update()` and `delete()` will ignore all custom where conditions, because they can't use one or only work with a primary key.  Use `get()` instead of `find()` when you want to get the first entity for your where condition.
+Every execution will reset all where conditions. You can only use custom where conditions when using the functions `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which should be enough to identify it from that moment on.
+
+## Basics: Write
+
+#### Fill
+
+In order to fill or set data to your entity, you can assign the values like usual or use the `fill()` function as fluent interface.
+
+```php
+<?php
+
+$user = new User($db);
+
+$user->name = 'Peter';
+$user->age = 28;
+
+echo $user->name; // Peter
+echo $user->age; // 28
+
+$user->fill([
+    'name' => 'Gustav'
+]);
+
+echo $user->name; // Gustav
+echo $user->age; // 28
+```
+
+#### Create
+
+```php
+<?php
+
+$data = [
+    'name' => 'Gustav',
+    'age' => 21
+];
+$new_user = (new User($db))
+    ->fill($data)
+    ->create();
+```
+
+After creating a new entity the new primary key is automatically saved to the model.
+
+#### Update
+
+```php
+<?php
+
+$user_forty_four = (new User())
+    ->find(44)
+    ->fill([
+        'age' => 29
+    ])
+    ->update();
+```
+
+#### Destroy
+
+```php
+<?php
+
+$user->destroy();
+```
 
 ## Relationships
 
@@ -109,6 +162,9 @@ Relationships can be added in your model as simple functions.
 The current model has an id of another entity.
 
 ```php
+<?php
+... // User Class
+
 public function creator()
 {
     return (new User($this->db))
@@ -118,9 +174,10 @@ public function creator()
 
 #### One to many
 
-Inside an Users class:
-
 ```php
+<?php
+... // User Class
+
 public function orders()
 {
     return (new Orders($this->db))
@@ -131,9 +188,10 @@ public function orders()
 
 #### Many to one
 
-Inside an Orders class:
-
 ```php
+<?php
+... // Order Class
+
 public function customer()
 {
     return (new User($this->db))
@@ -143,14 +201,10 @@ public function customer()
 
 #### Many to many
 
-Inside an Users class:
-
 ```php
-public function customer()
-{
-    return (new User($this->db))
-        ->find($this->user_id);
-}
+<?php
+
+...
 ```
 
 ## Utilities
@@ -160,12 +214,20 @@ public function customer()
 Get the model as array:
 
 ```php
-print_r($user->array());
+<?php
+
+$user->array();
 ```
 
 #### Last SQL Statement
 
-After executing the last sql statement is saved inside the `$last_query` property.
+After execution, the last SQL query is available with:
+
+```php
+<?php
+
+$user->last_query();
+```
 
 ## Extra: KiwiMeta
 
@@ -176,10 +238,12 @@ KiwiMeta extends from Kiwi and adds some convenient public properties to your mo
 * created_at
 * created_by
 
-You can use them with the functions `create_as(id)` or `update_as(id)`:
+You can use them with the functions `create_as()` or `update_as()`:
 
 ```php
-(new User($db))->find($id)
+<?php
+
+$gustav = (new User($db))->find(44)
     ->fill([
         'age' => $user->age * 2
     ])
@@ -189,8 +253,10 @@ You can use them with the functions `create_as(id)` or `update_as(id)`:
 ```
 
 ```php
-(new User($db))->fill([
-        'name' = 'Gustav',
+<?php
+
+$gustav = (new User($db))->fill([
+        'name' => 'Gustav',
         'age' => 44
     ])
     // sets also the created_at and updated_* properties
