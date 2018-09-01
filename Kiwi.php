@@ -3,6 +3,7 @@
 /**
  * Kiwi: A simple abstract database model.
  *
+ * @version 01-09-2018 v1
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 abstract class Kiwi {
@@ -109,6 +110,7 @@ abstract class Kiwi {
     public function create()
     {
         $this->set_primary_key(null);
+        $this->is_valid('create');
         $properties = $this->array();
 
         $keys = implode(',', array_keys($properties));
@@ -136,6 +138,7 @@ abstract class Kiwi {
      */
     public function update()
     {
+        $this->is_valid('update');
         $properties = $this->array();
 
         foreach ($properties as $key => $value) {
@@ -160,6 +163,7 @@ abstract class Kiwi {
      */
     public function delete()
     {
+        $this->is_valid('delete');
         $this->where_primary_key();
 
         $result = $this->execute('DELETE FROM '.static::$table);
@@ -171,6 +175,19 @@ abstract class Kiwi {
     }
 
     /**
+     * Check if all properties are valid, should be overwritten.
+     *
+     * @param String Origin function
+     * @return Boolean
+     */
+    public function is_valid($origin = null)
+    {
+        if ($origin != 'create' && empty($this->get_primary_key())) {
+            throw new \Exception(sprintf('No primary key set for %s', $this));
+        }
+    }
+
+    /**
      * Set data of current object with array
      *
      * @param Array $data Data to be filled
@@ -179,7 +196,7 @@ abstract class Kiwi {
     public function fill($data)
     {
         foreach ($data as $key => $value) {
-            if (property_exists($this, $key) && !empty($value)) {
+            if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
