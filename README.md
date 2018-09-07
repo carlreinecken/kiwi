@@ -16,8 +16,8 @@ class User extends Kiwi {
     public $name;
     public $age;
 
-    static $table = 'users';
-    static $primary_key = 'id';
+    protected static $table = 'users';
+    protected static $primary_key = 'id';
 
     ...
 }
@@ -31,7 +31,7 @@ Pass the SQLite3 object on each new model instance:
 $user = new User($db);
 ```
 
-## Basics: Read
+## Read
 
 #### Find
 
@@ -89,13 +89,13 @@ $young_dude = (new User($db))
     ->first_or_fail();
 ```
 
-Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which should be enough to identify it from that moment on.
+Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which is sufficient to identify it for other operations.
 
-## Basics: Write
+## Write
 
-#### Fill
+#### Mass assignment
 
-In order to fill or set data to your entity, you can assign the values like directly or mass assign the values with `fill()`.
+In order to set data to your entity, you can assign the values directly or mass assign the values with `fill()`.
 
 ```php
 <?php
@@ -114,6 +114,25 @@ $user->fill([
 
 echo $user->name; // Gustav
 echo $user->age; // 28
+```
+
+To prevent mass assignment vulnerabilities you need to define a protected `$guarded` property in your model, which you should fill with property names that are not supposed to be mass assigned. The primary key is by default not mass assignable.
+
+```php
+<?php
+
+class User extends Kiwi {
+    ...
+
+    protected $guarded;
+
+    __construct($db)
+    {
+        array_push($this->guarded, 'is_admin', 'is_allowed_to_fly');
+        parent::__construct($db);
+    }
+    ...
+}
 ```
 
 #### Create
@@ -145,13 +164,15 @@ $user_forty_four = (new User())
     ->update();
 ```
 
-#### Destroy
+#### Delete
 
 ```php
 <?php
 
-$user->destroy();
+$user->delete();
 ```
+
+The model will keep the properties, after the model has been deleted from the database.
 
 ## Relationships
 
@@ -180,11 +201,13 @@ public function creator()
 
 public function orders()
 {
-    return (new Orders($this->db))
+    return (new Order($this->db))
         ->where('user_id = ', $this->id)
         ->all();
 }
 ```
+
+Because `user_id` is a table column from orders you should capsulate this where statement in the Order model. Then it could look like `->where_user_is($this->id)->all()`.
 
 ## Utilities
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Kiwi: A simple abstract database model.
+ * Kiwi: A simple abstract SQLite3 database model.
  *
  * @version 07-09-2018 v1
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
@@ -189,9 +189,10 @@ abstract class Kiwi {
     }
 
     /**
-     * Set data of current object with array
+     * Mass assign properties which are not guarded of object with an array
      *
      * @param Array $data Data to be filled
+     * @throws \Exception When property is not mass assignable
      * @return Object Self reference
      */
     public function fill($data)
