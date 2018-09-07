@@ -41,7 +41,7 @@ echo '<h1>Kiwi: A simple abstract database model</h1>';
 </pre>
 <?php
 $me = (new User($db))->find(1);
-print_table([$me->array()], $me->last_query());
+print_table([$me->array()]);
 ?><pre><?=$me->last_query()?></pre><?php
 
 // -----------------------------------------------------------------------------
@@ -89,6 +89,7 @@ $new_user = (new User($db))
         'username' => 'GP'
     ])
     ->create_as($me->id);
+$new_user_id = $new_user->id;
 print_table((new User($db))->all());
 ?><pre><?=$new_user->last_query()?></pre><?php
 
@@ -110,8 +111,35 @@ $new_user
         'username' => 'GK'
     ])
     ->update_as($me->id);
-print_table([$new_user], $new_user->last_query());
+print_table([$new_user]);
 ?><pre><?=$new_user->last_query()?></pre><?php
+
+// -----------------------------------------------------------------------------
+?>
+<h3>Updating without required username and primary key throws error</h3>
+<pre>
+    $new_user->set_primary_key(null)
+    $new_user
+        ->fill([
+            'lastname' => 'Raufmann',
+            'username' => null
+        ])
+        ->update_as($me->id);
+</pre>
+<?php
+$new_user->set_primary_key(null);
+$new_user
+    ->fill([
+        'lastname' => 'Raufmann',
+        'username' => null
+    ]);
+try {
+    $new_user->update_as($me->id);
+    echo '<p>No error?</p>';
+} catch (\Exception $e) {
+    $exploded = explode("\n", $e->getMessage());
+    echo "<p>Validation Errors: <br />".implode('<br /> ', $exploded)."</p>";
+}
 
 // -----------------------------------------------------------------------------
 ?>
@@ -135,7 +163,7 @@ try {
     $friend_of_friend_of_gustav = $friend_of_gustav->friend();
     echo '<p>No error?</p>';
 } catch (\Exception $e) {
-    echo '<p>'.$e->getMessage().'</p>';
+    echo '<p>Error: '.$e->getMessage().'</p>';
 }
 
 // -----------------------------------------------------------------------------
@@ -148,7 +176,7 @@ try {
 </pre>
 <?php
 $gustav = (new User($db))
-    ->find($new_user->id)
+    ->find($new_user_id)
     ->delete();
-print_table((new User($db))->all(), 'Delete Gustav');
+print_table((new User($db))->all());
 ?><pre><?=$gustav->last_query()?></pre><?php

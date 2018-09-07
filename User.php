@@ -14,17 +14,14 @@ class User extends KiwiMeta {
 
     protected $guarded = ['is_admin'];
 
-    public function check($origin = null)
+    protected static function validate(User $user, $operation)
     {
-        switch ($origin) {
-            case self::ORIGIN_METHOD_CREATE:
-            case self::ORIGIN_METHOD_UPDATE:
-                if (empty($this->username)) {
-                    $this->validation_errors[] = 'A username is required';
-                }
-                break;
+        if ($operation == self::OPERATION_CREATE || $operation == self::OPERATION_UPDATE) {
+            if (empty($user->username)) {
+                $errors[] = 'A username is required';
+            }
         }
-        parent::check($origin);
+        return $errors ?? [];
     }
 
     public function friend()

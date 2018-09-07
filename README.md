@@ -176,30 +176,23 @@ The model will keep the properties, after the model has been deleted from the da
 
 #### Check Validity
 
-Before any writing execution the method `check` is called, in which you can check whether the properties validate correctly depending on context.
-
-You should push every validation error to the protected property `validation_errors`. This property will be reset every time the method `check` of Kiwi is called.
+The methods `create`, `update` and `delete` will call a static function `validate` if it exists. This callback should be defined in the model and should expect the arguments `$this` and `$operation`. It is expected that the callback returns an array of strings of validation errors.
 
 ```php
 <?php // Class User
 
-public function check($origin = null)
+protected static function validate(User $user, $operation)
 {
-    switch ($origin) {
-        case self::ORIGIN_METHOD_CREATE:
-        case self::ORIGIN_METHOD_UPDATE:
-            if (empty($this->name)) {
-                $this->validation_errors[] = 'A name is required';
-            }
-            break;
+    if ($operation == self::OPERATION_CREATE || $operation == self::OPERATION_UPDATE) {
+        if (empty($user->username)) {
+            $errors[] = 'A username is required';
+        }
     }
-    parent::check($origin);
+    return $errors ?? [];
 }
 ```
 
-The argument `$origin` gives you the possibility to differentiate between the origin of the call to the `check` method. Every writing method has its own constant value: `ORIGIN_METHOD_CREATE`, `ORIGIN_METHOD_UPDATE` and `ORIGIN_METHOD_DELETE`.
-
-The call afterwards to the parent `check` method is important, because it checks for the primary key and throws all `validation_errors` as exception (separated by line breaks).
+The argument `$operation` gives you the possibility to differentiate between the origin of the call. Every method has its own constant value `OPERATION_CREATE`, `OPERATION_UPDATE` or `OPERATION_DELETE`.
 
 ## Relationships
 

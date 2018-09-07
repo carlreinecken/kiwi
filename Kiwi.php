@@ -13,9 +13,9 @@ abstract class Kiwi {
     protected $last_query;
     protected $validation_errors;
 
-    const ORIGIN_METHOD_CREATE = 'ORIGIN_METHOD_CREATE';
-    const ORIGIN_METHOD_UPDATE = 'ORIGIN_METHOD_UPDATE';
-    const ORIGIN_METHOD_DELETE = 'ORIGIN_METHOD_DELETE';
+    const OPERATION_CREATE = 'OPERATION_CREATE';
+    const OPERATION_UPDATE = 'OPERATION_UPDATE';
+    const OPERATION_DELETE = 'OPERATION_DELETE';
 
     public function __construct($db)
     {
@@ -116,9 +116,9 @@ abstract class Kiwi {
     public function create()
     {
         $this->set_primary_key(null);
-        $this->check(self::ORIGIN_METHOD_CREATE);
-        $properties = $this->array();
+        $this->check(self::OPERATION_CREATE);
 
+        $properties = $this->array();
         $keys = implode(',', array_keys($properties));
         $values = implode(',', array_values(array_map(
             array($this, 'quote'), $properties
@@ -144,7 +144,7 @@ abstract class Kiwi {
      */
     public function update()
     {
-        $this->check(self::ORIGIN_METHOD_UPDATE);
+        $this->check(self::OPERATION_UPDATE);
         $properties = $this->array();
 
         foreach ($properties as $key => $value) {
@@ -169,7 +169,7 @@ abstract class Kiwi {
      */
     public function delete()
     {
-        $this->check(self::ORIGIN_METHOD_DELETE);
+        $this->check(self::OPERATION_DELETE);
         $this->where_primary_key();
 
         $result = $this->execute('DELETE FROM '.static::$table);
@@ -178,26 +178,6 @@ abstract class Kiwi {
             throw new \Exception(sprintf('Error while deleting %s', $this));
         }
         return $this;
-    }
-
-    /**
-     * Checks if all properties are valid, and writes validation errors to a protected property array.
-     * Will be called by the create, update and delete method, which will set an origin method.
-     *
-     * @param String Origin method. Available property constants: ORIGIN_METHOD_CREATE, ORIGIN_METHOD_UPDATE and ORIGIN_METHOD_DELETE
-     * @return Boolean
-     */
-    public function check($origin = null)
-    {
-
-        if ($origin != self::ORIGIN_METHOD_CREATE && empty($this->get_primary_key())) {
-            $this->validation_errors[] = sprintf('No primary key set for %s', $this);
-        }
-        if (!empty($this->validation_errors)) {
-            $errors = $this->validation_errors;
-            $this->validation_errors = [];
-            throw new \Exception(implode("\n", $errors));
-        }
     }
 
     /**
@@ -298,7 +278,26 @@ abstract class Kiwi {
     }
 
     /**
-     * Set data of current object with array. Use fill instead for public usage.
+     * Checks if all properties are valid, and writes validation errors to a protected property array.
+     * Will be called by the create, update and delete method, which will set an operation argument.
+     *
+     * @param String Possible constants: OPERATION_CREATE, OPERATION_UPDATE and OPERATION_DELETE
+     * @throws \Exception When at least one validation error exists
+     * @return Boolean
+     */
+    protected function check($operation)
+    {
+        $this->validation_errors = (method_exists($this, 'validate')) ? static::validate($this, $operation) : [];
+        if ($operation != self::OPERATION_CREATE && empty($this->get_primary_key())) {
+            $this->validation_errors[] = sprintf('No primary key set for %s', $this);
+        }
+        if (!empty($this->validation_errors)) {
+            throw new \Exception(implode("\n", $this->validation_errors));
+        }
+    }
+
+    /**
+     * Mass assign properties to this object with an array. Use fill instead for public usage.
      *
      * @param Array $data Data to be filled
      * @return Object Self reference
