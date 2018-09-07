@@ -174,6 +174,33 @@ $user->delete();
 
 The model will keep the properties, after the model has been deleted from the database.
 
+#### Check Validity
+
+Before any writing execution the method `check` is called, in which you can check whether the properties validate correctly depending on context.
+
+You should push every validation error to the protected property `validation_errors`. This property will be reset every time the method `check` of Kiwi is called.
+
+```php
+<?php // Class User
+
+public function check($origin = null)
+{
+    switch ($origin) {
+        case self::ORIGIN_METHOD_CREATE:
+        case self::ORIGIN_METHOD_UPDATE:
+            if (empty($this->name)) {
+                $this->validation_errors[] = 'A name is required';
+            }
+            break;
+    }
+    parent::check($origin);
+}
+```
+
+The argument `$origin` gives you the possibility to differentiate between the origin of the call to the `check` method. Every writing method has its own constant value: `ORIGIN_METHOD_CREATE`, `ORIGIN_METHOD_UPDATE` and `ORIGIN_METHOD_DELETE`.
+
+The call afterwards to the parent `check` method is important, because it checks for the primary key and throws all `validation_errors` as exception (separated by line breaks).
+
 ## Relationships
 
 Relationships can be added in your model as simple methods.

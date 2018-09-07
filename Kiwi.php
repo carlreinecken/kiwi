@@ -11,6 +11,11 @@ abstract class Kiwi {
     protected $database;
     protected $conditions;
     protected $last_query;
+    protected $validation_errors;
+
+    const ORIGIN_METHOD_CREATE = 'ORIGIN_METHOD_CREATE';
+    const ORIGIN_METHOD_UPDATE = 'ORIGIN_METHOD_UPDATE';
+    const ORIGIN_METHOD_DELETE = 'ORIGIN_METHOD_DELETE';
 
     public function __construct($db)
     {
@@ -111,7 +116,7 @@ abstract class Kiwi {
     public function create()
     {
         $this->set_primary_key(null);
-        $this->is_valid('create');
+        $this->check(self::ORIGIN_METHOD_CREATE);
         $properties = $this->array();
 
         $keys = implode(',', array_keys($properties));
@@ -139,7 +144,7 @@ abstract class Kiwi {
      */
     public function update()
     {
-        $this->is_valid('update');
+        $this->check(self::ORIGIN_METHOD_UPDATE);
         $properties = $this->array();
 
         foreach ($properties as $key => $value) {
@@ -164,7 +169,7 @@ abstract class Kiwi {
      */
     public function delete()
     {
-        $this->is_valid('delete');
+        $this->check(self::ORIGIN_METHOD_DELETE);
         $this->where_primary_key();
 
         $result = $this->execute('DELETE FROM '.static::$table);
@@ -176,15 +181,22 @@ abstract class Kiwi {
     }
 
     /**
-     * Check if all properties are valid, should be overwritten.
+     * Checks if all properties are valid, and writes validation errors to a protected property array.
+     * Will be called by the create, update and delete method, which will set an origin method.
      *
-     * @param String Origin method
+     * @param String Origin method. Available property constants: ORIGIN_METHOD_CREATE, ORIGIN_METHOD_UPDATE and ORIGIN_METHOD_DELETE
      * @return Boolean
      */
-    public function is_valid($origin = null)
+    public function check($origin = null)
     {
-        if ($origin != 'create' && empty($this->get_primary_key())) {
-            throw new \Exception(sprintf('No primary key set for %s', $this));
+
+        if ($origin != self::ORIGIN_METHOD_CREATE && empty($this->get_primary_key())) {
+            $this->validation_errors[] = sprintf('No primary key set for %s', $this);
+        }
+        if (!empty($this->validation_errors)) {
+            $errors = $this->validation_errors;
+            $this->validation_errors = [];
+            throw new \Exception(implode("\n", $errors));
         }
     }
 
