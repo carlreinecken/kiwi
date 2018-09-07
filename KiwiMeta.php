@@ -7,6 +7,13 @@ class KiwiMeta extends Kiwi {
     public $created_at = 0;
     public $created_by = 0;
 
+    public function __construct($db)
+    {
+        array_push($this->guarded, 'updated_at', 'updated_by', 'created_at', 'created_by');
+
+        parent::__construct($db);
+    }
+
     public function create_as($key)
     {
         $this->created_at = time();

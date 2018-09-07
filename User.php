@@ -12,6 +12,8 @@ class User extends KiwiMeta {
     protected static $table = 'users';
     protected static $primary_key = 'id';
 
+    protected $guarded = ['is_admin'];
+
     public function friend()
     {
         return (new $this($this->database))

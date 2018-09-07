@@ -101,8 +101,7 @@ print_table((new User($db))->all());
             'lastname' => 'Kaufmann',
             'username' => 'GK'
         ])
-        ->update_as($me->id)
-        ->find($new_user->id);
+        ->update_as($me->id);
 </pre>
 <?php
 $new_user
@@ -110,8 +109,7 @@ $new_user
         'lastname' => 'Kaufmann',
         'username' => 'GK'
     ])
-    ->update_as($me->id)
-    ->find($new_user->id);
+    ->update_as($me->id);
 print_table([$new_user], $new_user->last_query());
 ?><pre><?=$new_user->last_query()?></pre><?php
 

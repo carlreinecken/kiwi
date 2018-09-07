@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract database model.
  *
- * @version 01-09-2018 v1
+ * @version 07-09-2018 v1
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 abstract class Kiwi {
@@ -14,6 +14,7 @@ abstract class Kiwi {
 
     public function __construct($db)
     {
+        $this->init_mass_assignment();
         $this->database = $db;
     }
 
@@ -39,7 +40,7 @@ abstract class Kiwi {
         $objects = [];
         $result = $this->execute();
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-           array_push($objects, (new $this($this->database))->fill($row));
+           array_push($objects, (new $this($this->database))->set($row));
         }
 
         return $objects;
@@ -59,7 +60,7 @@ abstract class Kiwi {
             throw new \Exception(sprintf('No %s found', $this));
         }
 
-        return $this->fill($results);
+        return $this->set($results);
     }
 
     /**
@@ -196,6 +197,9 @@ abstract class Kiwi {
     public function fill($data)
     {
         foreach ($data as $key => $value) {
+            if (in_array($key, $this->guarded)) {
+                throw new \Exception(sprintf('%s of %s is not mass assignable', $key, $this));
+            }
             if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
@@ -278,6 +282,38 @@ abstract class Kiwi {
         $this->last_query = $query.$this->conditions;
         $this->reset_conditions();
         return $result;
+    }
+
+    /**
+     * Set data of current object with array. Use fill instead for public usage.
+     *
+     * @param Array $data Data to be filled
+     * @return Object Self reference
+     */
+    private function set($data)
+    {
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Guarded is supposed to be an array of all properties that are not allowed to be mass assigned via the fill function.
+     * If the array not present it will notify the developer with an exception.
+     *
+     * @throws \Exception
+     * @return Array
+     */
+    private function init_mass_assignment()
+    {
+        if (empty($this->guarded)) {
+            throw new \Exception(sprintf('%s has no property guarded', $this));
+        }
+        array_push($this->guarded, static::$primary_key);
     }
 
     /**
