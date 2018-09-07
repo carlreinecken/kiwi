@@ -178,7 +178,7 @@ abstract class Kiwi {
     /**
      * Check if all properties are valid, should be overwritten.
      *
-     * @param String Origin function
+     * @param String Origin method
      * @return Boolean
      */
     public function is_valid($origin = null)
@@ -302,7 +302,7 @@ abstract class Kiwi {
     }
 
     /**
-     * Guarded is supposed to be an array of all properties that are not allowed to be mass assigned via the fill function.
+     * Guarded is supposed to be an array of all properties that are not allowed to be mass assigned via the fill method.
      * If the array not present it will notify the developer with an exception.
      *
      * @throws \Exception

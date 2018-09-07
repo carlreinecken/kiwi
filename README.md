@@ -75,7 +75,7 @@ The model instance on which `all()` was called will not be changed.
 
 #### Where Conditions
 
-Call as many where conditions as you like before calling one of the executing functions:
+Call as many where conditions as you like before calling one of the executing methods:
 
 ```php
 <?php
@@ -89,13 +89,13 @@ $young_dude = (new User($db))
     ->first_or_fail();
 ```
 
-Every execution will reset all where conditions. You can only use custom where conditions when using the functions `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which should be enough to identify it from that moment on.
+Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which should be enough to identify it from that moment on.
 
 ## Basics: Write
 
 #### Fill
 
-In order to fill or set data to your entity, you can assign the values like usual or use the `fill()` function as fluent interface.
+In order to fill or set data to your entity, you can assign the values like directly or mass assign the values with `fill()`.
 
 ```php
 <?php
@@ -155,7 +155,7 @@ $user->destroy();
 
 ## Relationships
 
-Relationships can be added in your model as simple functions.
+Relationships can be added in your model as simple methods.
 
 #### One to one
 
@@ -217,7 +217,7 @@ KiwiMeta extends from Kiwi and adds some convenient public properties to your mo
 * created_at
 * created_by
 
-You can use them with the functions `create_as()` or `update_as()`:
+You can use them with the methods `create_as()` or `update_as()`:
 
 ```php
 <?php
