@@ -11,7 +11,6 @@ abstract class Kiwi {
     protected $database;
     protected $conditions;
     protected $last_query;
-    protected $validation_errors;
 
     const OPERATION_CREATE = 'OPERATION_CREATE';
     const OPERATION_UPDATE = 'OPERATION_UPDATE';
@@ -287,12 +286,12 @@ abstract class Kiwi {
      */
     protected function check($operation)
     {
-        $this->validation_errors = (method_exists($this, 'validate')) ? static::validate($this, $operation) : [];
+        $validation_errors = (method_exists($this, 'validate')) ? static::validate($this, $operation) : [];
         if ($operation != self::OPERATION_CREATE && empty($this->get_primary_key())) {
-            $this->validation_errors[] = sprintf('No primary key set for %s', $this);
+            $validation_errors[] = sprintf('No primary key set for %s', $this);
         }
-        if (!empty($this->validation_errors)) {
-            throw new \Exception(implode("\n", $this->validation_errors));
+        if (!empty($validation_errors)) {
+            throw new \Exception(implode("\n", $validation_errors));
         }
     }
 
