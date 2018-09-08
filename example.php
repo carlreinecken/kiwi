@@ -31,7 +31,7 @@ function print_table($array) {
     <?php
 }
 
-echo '<h1>Kiwi: A simple abstract database model</h1>';
+echo '<h1>Kiwi: A simple abstract SQLite3 database model</h1>';
 
 // -----------------------------------------------------------------------------
 ?>
@@ -59,7 +59,8 @@ print_table($me->all());
 <h3>Filtered all users by friend_id and firstname</h3>
 <pre>
     $me->where('friend_id = ', 2)
-        ->where('AND firstname LIKE ', '%ar%');
+        ->where('AND firstname LIKE ', '%ar%')
+        ->all();
 </pre>
 <?php
 $me->where('friend_id = ', 2)
@@ -79,6 +80,9 @@ print_table($me->all());
             'username' => 'GP'
         ])
         ->create_as($me->id);
+</pre>
+<pre>
+    (new User($db))->all();
 </pre>
 <?php
 $new_user = (new User($db))
@@ -122,19 +126,20 @@ print_table([$new_user]);
     $new_user
         ->fill([
             'lastname' => 'Raufmann',
-            'username' => null
+            'username' => null,
+            // 'is_admin' => true // guarded property should throw error
         ])
         ->update_as($me->id);
 </pre>
 <?php
 $new_user->set_primary_key(null);
-$new_user
-    ->fill([
-        'lastname' => 'Raufmann',
-        'username' => null
-    ]);
 try {
-    $new_user->update_as($me->id);
+    $new_user->fill([
+        'lastname' => 'Raufmann',
+        'username' => null,
+        // 'is_admin' => true // guarded property should throw error
+    ])
+    ->update_as($me->id);
     echo '<p>No error?</p>';
 } catch (\Exception $e) {
     $exploded = explode("\n", $e->getMessage());
@@ -173,6 +178,9 @@ try {
     $gustav = (new User($db))
         ->find($new_user->id)
         ->delete();
+</pre>
+<pre>
+    (new User($db))->all();
 </pre>
 <?php
 $gustav = (new User($db))

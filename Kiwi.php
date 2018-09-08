@@ -19,7 +19,7 @@ abstract class Kiwi {
 
     public function __construct($db)
     {
-        $this->init_mass_assignment();
+        $this->enable_mass_assignment();
         $this->database = $db;
     }
 
@@ -320,7 +320,7 @@ abstract class Kiwi {
      * @throws \Exception
      * @return Array
      */
-    private function init_mass_assignment()
+    private function enable_mass_assignment()
     {
         if (empty($this->guarded)) {
             throw new \Exception(sprintf('%s has no property guarded', $this));
