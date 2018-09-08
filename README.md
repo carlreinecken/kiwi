@@ -149,7 +149,7 @@ $new_user = (new User($db))
     ->create();
 ```
 
-After creating a new entity the new primary key is automatically saved to the model.
+Before creating a new entity the primary key is set to null. And after creating a new entity the new primary key is automatically saved to the model.
 
 #### Update
 
@@ -164,6 +164,8 @@ $user_forty_four = (new User())
     ->update();
 ```
 
+Keep in mind that `create` and `update` write always the whole object to the database. That means if the old value of a property shouldn't be changed it should not be set to `null` before writing to the database. Use the `validate` hook to prevent this from happening.
+
 #### Delete
 
 ```php
@@ -172,11 +174,11 @@ $user_forty_four = (new User())
 $user->delete();
 ```
 
-The model will keep the properties, after the model has been deleted from the database.
+The model will keep its properties even after the model has been deleted from the database.
 
-#### Check Validity
+#### Validate Hook
 
-The methods `create`, `update` and `delete` will call a static function `validate` if it exists. This callback should be defined in the model and should expect the arguments `$this` and `$operation`. It is expected that the callback returns an array of strings of validation errors.
+The methods `create`, `update` and `delete` will call a static function `validate` if it exists. This hook should be defined in the model and should expect the arguments `$this` and `$operation`. It is expected that the hook returns an array of strings of validation errors.
 
 ```php
 <?php // Class User
