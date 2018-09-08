@@ -23,11 +23,12 @@ class User extends Kiwi {
 }
 ```
 
-Pass the SQLite3 object on each new model instance:
+Inject the SQLite3 object on each new model instance:
 
 ```php
 <?php
 
+$db = new SQLite3('database.sqlite');
 $user = new User($db);
 ```
 
@@ -47,7 +48,7 @@ If you need an exception when no user is found, call `find_or_fail()` instead.
 
 #### First
 
-Get first user:
+Get the first user:
 
 ```php
 <?php
@@ -89,7 +90,7 @@ $young_dude = (new User($db))
     ->first_or_fail();
 ```
 
-Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which is sufficient to identify it for other operations.
+Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()` or `all()`. After an entity was found it should have a primary key, which is sufficient to identify it for further operations.
 
 ## Write
 
@@ -114,24 +115,22 @@ $user->fill([
 
 echo $user->name; // Gustav
 echo $user->age; // 28
+
+// As mass assignment
+$user->fill($_POST);
 ```
 
 To prevent mass assignment vulnerabilities you need to define a protected `$guarded` property in your model, which you should fill with property names that are not supposed to be mass assigned. The primary key is by default not mass assignable.
 
 ```php
-<?php
+<?php // User Class
 
-class User extends Kiwi {
-    ...
+protected $guarded;
 
-    protected $guarded;
-
-    __construct($db)
-    {
-        array_push($this->guarded, 'is_admin', 'is_allowed_to_fly');
-        parent::__construct($db);
-    }
-    ...
+__construct($db)
+{
+    array_push($this->guarded, 'is_admin', 'is_allowed_to_fly');
+    parent::__construct($db);
 }
 ```
 
@@ -181,7 +180,7 @@ The model will keep its properties even after the model has been deleted from th
 The methods `create`, `update` and `delete` will call a static function `validate` if it exists. This hook should be defined in the model and should expect the arguments `$this` and `$operation`. It is expected that the hook returns an array of strings of validation errors.
 
 ```php
-<?php // Class User
+<?php // User Class
 
 protected static function validate(User $user, $operation)
 {
@@ -262,7 +261,7 @@ KiwiMeta extends from Kiwi and adds some convenient public properties to your mo
 * created_at
 * created_by
 
-You can use them with the methods `create_as()` or `update_as()`:
+The values are not mass assignable. As default they are all set to `0`. You can set them with the methods `create_as()` or `update_as()`. The timestamps are saved as UNIX timestamps from `time()`.
 
 ```php
 <?php
@@ -272,7 +271,7 @@ $gustav = (new User($db))
     ->fill([
         'age' => $user->age * 2
     ])
-    // sets also the updated_at property to current timestamp
+    // sets the updated_* properties
     // and calls update()
     ->update_as($current_user_id);
 ```
@@ -285,7 +284,7 @@ $gustav = (new User($db))
         'name' => 'Gustav',
         'age' => 44
     ])
-    // sets also the created_at and updated_* properties
+    // sets the created_* and updated_* properties
     // and calls create()
     ->create_as($current_user_id);
 ```
