@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Kiwi: A simple abstract SQLite3 database model.
+ *
+ * @version v1.1.1
+ * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
+ */
+
 class KiwiMeta extends Kiwi {
 
     public $updated_at = 0;
@@ -9,9 +16,8 @@ class KiwiMeta extends Kiwi {
 
     public function __construct($db)
     {
-        array_push($this->guarded, 'updated_at', 'updated_by', 'created_at', 'created_by');
-
         parent::__construct($db);
+        array_push($this->guarded, 'updated_at', 'updated_by', 'created_at', 'created_by');
     }
 
     public function create_as($key)

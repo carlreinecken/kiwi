@@ -3,9 +3,10 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version 07-09-2018 v1
+ * @version v1.1.1
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
+
 abstract class Kiwi {
 
     protected $database;
@@ -23,7 +24,7 @@ abstract class Kiwi {
     }
 
     /**
-     * Cast the current object to an array
+     * Cast object to an array
      *
      * @return Array
      */
@@ -321,8 +322,8 @@ abstract class Kiwi {
      */
     private function enable_mass_assignment()
     {
-        if (empty($this->guarded)) {
-            throw new \Exception(sprintf('%s has no property guarded', $this));
+        if (!isset($this->guarded)) {
+            throw new \Exception(sprintf('Property $guarded of %s needs to be defined', $this));
         }
         array_push($this->guarded, static::$primary_key);
     }
