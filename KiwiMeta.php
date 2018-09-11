@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.1.1
+ * @version v1.1.2
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 

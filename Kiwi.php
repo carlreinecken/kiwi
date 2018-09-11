@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.1.1
+ * @version v1.1.2
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 
@@ -62,7 +62,7 @@ abstract class Kiwi {
         $results = $this->execute()->fetchArray(SQLITE3_ASSOC);
 
         if (!$results) {
-            throw new \Exception(sprintf('No %s found', $this));
+            throw new \Exception(sprintf('No %s found', $this), 404);
         }
 
         return $this->set($results);
