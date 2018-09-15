@@ -10,8 +10,9 @@
 abstract class Kiwi {
 
     protected $database;
-    protected $conditions;
-    protected $last_query;
+
+    private $conditions;
+    private $last_query;
     private $original = [];
 
     const SELECT_FROM_ALL = 'SELECT * FROM ';
