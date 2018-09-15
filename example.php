@@ -126,7 +126,6 @@ print_table([$new_user]);
 <pre>
     $new_user
         ->fill([
-            'lastname' => 'Kaufmann',
             'username' => 'GKX'
         ])
         ->update_as(64);

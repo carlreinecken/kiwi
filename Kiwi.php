@@ -160,6 +160,10 @@ abstract class Kiwi {
             $values[] = $key.' = '.$this->quote($value);
         }
 
+        if (empty($values)) {
+            throw new \Exception(sprintf('No values were changed, when tried to update %s', $this));
+        }
+
         $this->where_primary_key();
         $result = $this->execute('UPDATE '.static::$table.' SET '.implode(', ', $values));
 
