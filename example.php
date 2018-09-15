@@ -99,22 +99,44 @@ print_table((new User($db))->all());
 
 // -----------------------------------------------------------------------------
 ?>
-<h3>Lastname and username of Gustav updated</h3>
+<h3>Updating lastname and username of Gustav</h3>
 <pre>
+    sleep(1); // otherwise the updated_at would have the same timestamp as before
     $new_user
         ->fill([
             'lastname' => 'Kaufmann',
             'username' => 'GK'
         ])
-        ->update_as($me->id);
+        ->update_as(44);
 </pre>
 <?php
+sleep(1);
 $new_user
     ->fill([
         'lastname' => 'Kaufmann',
         'username' => 'GK'
     ])
-    ->update_as($me->id);
+    ->update_as(44);
+print_table([$new_user]);
+?><pre><?=$new_user->last_query()?></pre><?php
+
+// -----------------------------------------------------------------------------
+?>
+<h3>Updating only username of Gustav</h3>
+<pre>
+    $new_user
+        ->fill([
+            'lastname' => 'Kaufmann',
+            'username' => 'GKX'
+        ])
+        ->update_as(64);
+</pre>
+<?php
+$new_user
+    ->fill([
+        'username' => 'GKX'
+    ])
+    ->update_as(64);
 print_table([$new_user]);
 ?><pre><?=$new_user->last_query()?></pre><?php
 
@@ -129,7 +151,7 @@ print_table([$new_user]);
             'username' => null,
             // 'is_admin' => true // guarded property should throw error
         ])
-        ->update_as($me->id);
+        ->update_as(45);
 </pre>
 <?php
 $new_user->set_primary_key(null);
@@ -139,7 +161,7 @@ try {
         'username' => null,
         // 'is_admin' => true // guarded property should throw error
     ])
-    ->update_as($me->id);
+    ->update_as(45);
     echo '<p>No error?</p>';
 } catch (\Exception $e) {
     $exploded = explode("\n", $e->getMessage());

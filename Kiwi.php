@@ -12,6 +12,7 @@ abstract class Kiwi {
     protected $database;
     protected $conditions;
     protected $last_query;
+    private $original = [];
 
     const OPERATION_CREATE = 'OPERATION_CREATE';
     const OPERATION_UPDATE = 'OPERATION_UPDATE';
@@ -119,8 +120,8 @@ abstract class Kiwi {
         $this->check(self::OPERATION_CREATE);
 
         $properties = $this->array();
-        $keys = implode(',', array_keys($properties));
-        $values = implode(',', array_values(array_map(
+        $keys = implode(', ', array_keys($properties));
+        $values = implode(', ', array_values(array_map(
             array($this, 'quote'), $properties
         )));
 
@@ -132,6 +133,7 @@ abstract class Kiwi {
         }
 
         $this->set_primary_key($this->database->lastInsertRowID());
+        $this->refresh_original();
 
         return $this;
     }
@@ -144,21 +146,28 @@ abstract class Kiwi {
      */
     public function update()
     {
-        $this->check(self::OPERATION_UPDATE);
-        $properties = $this->array();
+        if (empty($this->original)) {
+            throw new \Exception(sprintf('Tried to update %s that may not exist', $this));
+        }
 
+        $this->check(self::OPERATION_UPDATE);
+
+        $properties = $this->array();
         foreach ($properties as $key => $value) {
+            if (isset($this->original[$key]) && $this->original[$key] == $value) {
+                continue;
+            }
             $values[] = $key.' = '.$this->quote($value);
         }
 
         $this->where_primary_key();
-
-        $result = $this->execute('UPDATE '.static::$table.' SET '.implode(',', $values));
+        $result = $this->execute('UPDATE '.static::$table.' SET '.implode(', ', $values));
 
         if (!$result) {
             throw new \Exception(sprintf('Error while updating %s', $this));
         }
 
+        $this->refresh_original();
         return $this;
     }
 
@@ -177,6 +186,8 @@ abstract class Kiwi {
         if (!$result) {
             throw new \Exception(sprintf('Error while deleting %s', $this));
         }
+
+        $this->original = [];
         return $this;
     }
 
@@ -198,6 +209,15 @@ abstract class Kiwi {
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * Resets the object to its original values
+     */
+    public function reset()
+    {
+        $this->set($this->original);
         return $this;
     }
 
@@ -228,8 +248,7 @@ abstract class Kiwi {
     protected function where_primary_key($value = null)
     {
         $value = $value ?? $this->get_primary_key();
-        $this->set_primary_key($value);
-        return $this
+        return $this->set_primary_key($value)
             ->reset_conditions()
             ->where(static::$primary_key.' = ', $value);
     }
@@ -281,6 +300,7 @@ abstract class Kiwi {
      * Checks if all properties are valid, and writes validation errors to a protected property array.
      * Will be called by the create, update and delete method, which will set an operation argument.
      *
+     * @param Object Self reference
      * @param String Possible constants: OPERATION_CREATE, OPERATION_UPDATE and OPERATION_DELETE
      * @throws \Exception When at least one validation error exists
      * @return Boolean
@@ -309,6 +329,7 @@ abstract class Kiwi {
                 $this->$key = $value;
             }
         }
+        $this->refresh_original();
 
         return $this;
     }
@@ -323,13 +344,21 @@ abstract class Kiwi {
     private function enable_mass_assignment()
     {
         if (!isset($this->guarded)) {
-            throw new \Exception(sprintf('Property $guarded of %s needs to be defined', $this));
+            throw new \Exception(sprintf('Property $guarded of %s is undefined', $this));
         }
         array_push($this->guarded, static::$primary_key);
     }
 
     /**
-     * GETTER
+     * Sets the orignal values to the values of the object
+     */
+    private function refresh_original()
+    {
+        $this->original = array_merge($this->original, $this->array());
+    }
+
+    /**
+     * SETTER & GETTER
      */
 
     public function last_query()
@@ -340,6 +369,7 @@ abstract class Kiwi {
     public function set_primary_key($key)
     {
         $this->{static::$primary_key} = $key;
+        return $this;
     }
 
     public function get_primary_key()

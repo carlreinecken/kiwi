@@ -252,6 +252,16 @@ After execution, the last SQL query is available with:
 $user->last_query();
 ```
 
+#### Reset
+
+Resets the object to its original values. The original values are set when calling `first()`, `first_or_fail()`, `all()`, `create()` or `update()`. When the object was just instantiated or when calling `delete()`, the original values will have no values.
+
+```php
+<?php
+
+$user->reset();
+```
+
 ## Extra: KiwiMeta
 
 KiwiMeta extends from Kiwi and adds some convenient public properties to your model (that also need to be present in the database table):
