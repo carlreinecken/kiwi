@@ -169,6 +169,9 @@ abstract class Kiwi {
         if (empty($this->original)) {
             throw new \Exception(sprintf('Tried to update %s that may not exist', $this));
         }
+        if (!$this->changed()) {
+            throw new \Exception(sprintf('No values were changed, when tried to update %s', $this));
+        }
 
         $this->check(self::OPERATION_UPDATE);
 
@@ -180,9 +183,6 @@ abstract class Kiwi {
             $values[] = $key.' = '.$this->quote($value);
         }
 
-        if (empty($values)) {
-            throw new \Exception(sprintf('No values were changed, when tried to update %s', $this));
-        }
 
         $this->where_primary_key();
         $result = $this->execute('UPDATE '.static::$table.' SET '.implode(', ', $values));
@@ -372,6 +372,21 @@ abstract class Kiwi {
      * SETTER & GETTER
      */
 
+    /**
+    * Wether there is a difference between the current object and its orignal values
+    *
+    * @return Boolean
+    */
+    public function changed()
+    {
+        return empty(array_diff_assoc($this->array(), $this->original)) === false;
+    }
+
+    /**
+     * Last query after calling any of the excuting methods
+     *
+     * @return String
+     */
     public function last_query()
     {
         return $this->last_query;

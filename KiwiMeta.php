@@ -32,8 +32,10 @@ class KiwiMeta extends Kiwi {
 
     public function update_as($key)
     {
-        $this->updated_at = time();
-        $this->updated_by = $key;
+        if ($this->changed()) {
+            $this->updated_at = time();
+            $this->updated_by = $key;
+        }
 
         return $this->update();
     }
