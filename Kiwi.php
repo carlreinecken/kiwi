@@ -16,6 +16,8 @@ abstract class Kiwi {
     private $original = [];
 
     const SELECT_FROM_ALL = 'SELECT * FROM ';
+    const NOT_FOUND_EXCEPTION_CODE = 404;
+
     const OPERATION_CREATE = 'OPERATION_CREATE';
     const OPERATION_UPDATE = 'OPERATION_UPDATE';
     const OPERATION_DELETE = 'OPERATION_DELETE';
@@ -65,7 +67,7 @@ abstract class Kiwi {
         $results = $this->execute(self::SELECT_FROM_ALL.static::$table)->fetchArray(SQLITE3_ASSOC);
 
         if (!$results) {
-            throw new \Exception(sprintf('No %s found', $this), 404);
+            throw new \Exception(sprintf('No %s found', $this), self::NOT_FOUND_EXCEPTION_CODE);
         }
 
         return $this->set($results);
@@ -80,7 +82,11 @@ abstract class Kiwi {
     {
         try {
             $this->first_or_fail();
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            if ($e->getCode() != self::NOT_FOUND_EXCEPTION_CODE) {
+                throw $e;
+            }
+        }
 
         return $this;
     }

@@ -254,7 +254,7 @@ $user->last_query();
 
 #### Reset
 
-Resets the object to its original values. The original values are set when calling `first()`, `first_or_fail()`, `all()`, `create()` or `update()`. When the object was just instantiated or when calling `delete()`, the original values will have no values.
+Resets the object to its original values. The original values are set when calling any of the executing methods. When the object was just instantiated or when calling `delete()`, the original values will be empty.
 
 ```php
 <?php
