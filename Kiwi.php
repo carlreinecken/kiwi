@@ -39,6 +39,18 @@ abstract class Kiwi {
     }
 
     /**
+     * Count all objects in the database with current query
+     *
+     * @return Number
+     */
+    public function count()
+    {
+        $count = 'count(*)';
+        $result = $this->execute('SELECT '.$count.' FROM '.static::$table);
+        return $result->fetchArray(SQLITE3_ASSOC)[$count];
+    }
+
+    /**
      * Get all objects from the table with current query
      *
      * @param Boolean Throw exception if no object is found
