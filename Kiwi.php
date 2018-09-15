@@ -127,7 +127,7 @@ abstract class Kiwi {
             array($this, 'quote'), $properties
         )));
 
-        $this->reset_conditions();
+        $this->conditions = '';
         $result = $this->execute('INSERT INTO '.static::$table.' ('.$keys.') VALUES ('.$values.')');
 
         if (!$result) {
@@ -253,21 +253,10 @@ abstract class Kiwi {
      */
     protected function where_primary_key($value = null)
     {
-        $value = $value ?? $this->get_primary_key();
-        return $this->set_primary_key($value)
-            ->reset_conditions()
-            ->where(static::$primary_key.' = ', $value);
-    }
-
-    /**
-     * Reset all where conditions
-     *
-     * @return Object Self reference
-     */
-    protected function reset_conditions()
-    {
         $this->conditions = '';
-        return $this;
+        $value = $value ?? $this->get_primary_key();
+        $this->set_primary_key($value);
+        return $this->where(static::$primary_key.' = ', $value);
     }
 
     /**
