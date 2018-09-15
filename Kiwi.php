@@ -14,6 +14,7 @@ abstract class Kiwi {
     protected $last_query;
     private $original = [];
 
+    const SELECT_FROM_ALL = 'SELECT * FROM ';
     const OPERATION_CREATE = 'OPERATION_CREATE';
     const OPERATION_UPDATE = 'OPERATION_UPDATE';
     const OPERATION_DELETE = 'OPERATION_DELETE';
@@ -44,7 +45,7 @@ abstract class Kiwi {
     public function all()
     {
         $objects = [];
-        $result = $this->execute();
+        $result = $this->execute(self::SELECT_FROM_ALL.static::$table);
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
            array_push($objects, (new $this($this->database))->set($row));
         }
@@ -60,7 +61,7 @@ abstract class Kiwi {
      */
     public function first_or_fail()
     {
-        $results = $this->execute()->fetchArray(SQLITE3_ASSOC);
+        $results = $this->execute(self::SELECT_FROM_ALL.static::$table)->fetchArray(SQLITE3_ASSOC);
 
         if (!$results) {
             throw new \Exception(sprintf('No %s found', $this), 404);
@@ -286,21 +287,6 @@ abstract class Kiwi {
     }
 
     /**
-     * Execute the current SQL with where conditions
-     *
-     * @param String Optional beginning of SQL query
-     * @return Any The result of the database query
-     */
-    protected function execute($sql = null)
-    {
-        $query = ($sql) ? $sql : 'SELECT * FROM '.static::$table;
-        $result = $this->database->query($query.$this->conditions);
-        $this->last_query = $query.$this->conditions;
-        $this->reset_conditions();
-        return $result;
-    }
-
-    /**
      * Checks if all properties are valid, and writes validation errors to a protected property array.
      * Will be called by the create, update and delete method, which will set an operation argument.
      *
@@ -318,6 +304,19 @@ abstract class Kiwi {
         if (!empty($validation_errors)) {
             throw new \Exception(implode("\n", $validation_errors));
         }
+    }
+
+    /**
+     * Executes a sql query with where conditions
+     *
+     * @param String Beginning of sql query
+     * @return Any The result of the database query
+     */
+    private function execute($prefix)
+    {
+        $this->last_query = $prefix.$this->conditions;
+        $this->conditions = '';
+        return $this->database->query($this->last_query);
     }
 
     /**
