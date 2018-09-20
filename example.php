@@ -82,7 +82,7 @@ print_table($me->all());
         ->create_as($me->id);
 </pre>
 <pre>
-    (new User($db))->all();
+    (new User($db))->all('ORDER BY lastname ASC');
 </pre>
 <?php
 $new_user = (new User($db))
@@ -94,7 +94,7 @@ $new_user = (new User($db))
     ])
     ->create_as($me->id);
 $new_user_id = $new_user->id;
-print_table((new User($db))->all());
+print_table((new User($db))->all('ORDER BY lastname ASC'));
 ?><pre><?=$new_user->last_query()?></pre><?php
 
 // -----------------------------------------------------------------------------

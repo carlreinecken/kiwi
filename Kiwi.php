@@ -57,12 +57,12 @@ abstract class Kiwi {
      * @throws \Exception No objects found
      * @return Self reference
      */
-    public function all()
+    public function all($suffix = '')
     {
         $objects = [];
-        $result = $this->execute(self::SELECT_FROM_ALL.static::$table);
+        $result = $this->execute(self::SELECT_FROM_ALL.static::$table, $suffix);
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-           array_push($objects, (new $this($this->database))->set($row));
+            array_push($objects, (new $this($this->database))->set($row));
         }
 
         return $objects;
@@ -320,9 +320,9 @@ abstract class Kiwi {
      * @param String Beginning of sql query
      * @return Any The result of the database query
      */
-    private function execute($prefix)
+    private function execute($prefix, $suffix = '')
     {
-        $this->last_query = $prefix.$this->conditions;
+        $this->last_query = $prefix.$this->conditions.' '.$suffix;
         $this->conditions = '';
         return $this->database->query($this->last_query);
     }
