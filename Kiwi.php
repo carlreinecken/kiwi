@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.2.0
+ * @version v1.2.1
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 
@@ -252,13 +252,10 @@ abstract class Kiwi {
      * @param Any The value
      * @return Object Self reference
      */
-    public function where($column_and_operator, $value)
+    public function where($column_and_operator, $value = '')
     {
-        $this->conditions .= (stripos($this->conditions, 'WHERE') === false)
-            ? ' WHERE '
-            : ' ';
-
-        $this->conditions .= $column_and_operator.$this->quote($value);
+        $this->conditions .= (stripos($this->conditions, 'WHERE') === false) ? ' WHERE ' : ' ';
+        $this->conditions .= $column_and_operator.$this->quote($value, true);
 
         return $this;
     }
@@ -283,12 +280,13 @@ abstract class Kiwi {
      * @param Any The unprocessed value
      * @return Any The processed value
      */
-    protected function quote($value)
+    protected function quote($value, $allow_empty_strings = false)
     {
         if ($value === null) {
             return 'NULL';
-        }
-        if (is_string($value)) {
+        } else if ($allow_empty_strings && $value === '') {
+            return '';
+        } else if (is_string($value)) {
             return '\''.$this->database->escapeString($value).'\'';
         }
         return $value;

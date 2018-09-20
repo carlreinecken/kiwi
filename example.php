@@ -58,12 +58,12 @@ print_table($me->all());
 ?>
 <h3>Filtered all users by friend_id and firstname</h3>
 <pre>
-    $me->where('friend_id = ', 2)
+    $me->where('friend_id = 2')
         ->where('AND firstname LIKE ', '%ar%')
         ->all();
 </pre>
 <?php
-$me->where('friend_id = ', 2)
+$me->where('friend_id = 2')
     ->where('AND firstname LIKE ', '%ar%');
 print_table($me->all());
 ?><pre><?=$me->last_query()?></pre><?php
