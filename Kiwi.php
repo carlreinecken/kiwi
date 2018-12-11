@@ -359,7 +359,7 @@ abstract class Kiwi {
     }
 
     /**
-     * Sets the orignal values to the values of the object
+     * Sets the original values to the values of the object
      */
     private function refresh_original()
     {
@@ -371,13 +371,23 @@ abstract class Kiwi {
      */
 
     /**
-    * Wether there is a difference between the current object and its orignal values
+    * Wether there is a difference between the current object and its original values
     *
     * @return Boolean
     */
     public function changed()
     {
-        return empty(array_diff_assoc($this->array(), $this->original)) === false;
+        return empty($this->diff()) === false;
+    }
+
+    /**
+    * Returns an array of the keys that differ from the original object
+    *
+    * @return Array
+    */
+    public function diff()
+    {
+        return array_keys(array_diff_assoc($this->array(), $this->original));
     }
 
     /**

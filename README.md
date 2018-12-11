@@ -264,7 +264,23 @@ After execution, the last SQL query is available with:
 $user->last_query();
 ```
 
-#### Reset
+#### Original Values
+
+Returns a boolean, whether the object has changed from its original values.
+
+```php
+<?php
+
+$user->changed();
+```
+
+Returns an array of the keys that differ from the original object.
+
+```php
+<?php
+
+$user->diff();
+```
 
 Resets the object to its original values. The original values are set when calling any of the executing methods. When the object was just instantiated or when calling `delete()`, the original values will be empty.
 
