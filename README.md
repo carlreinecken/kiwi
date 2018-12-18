@@ -72,7 +72,7 @@ $users = $user->all();
 
 When no users are found it will return an empty array.
 
-The model instance on which `all()` was called will not be changed. As first optional parameter you can pass a suffix for the query, which could contain something like `ORDER BY name ASC`. The conditions and limit will stay, unless you pass `all('', true)`.
+The model instance on which `all()` was called will not be changed. The query will stay in the object, unless you pass `all(true)` to reset it.
 
 #### Count
 
@@ -84,7 +84,7 @@ If you just want to get the amount of all results, then you can use `count()` to
 $amount_of_all_users = $user->count();
 ```
 
-The model instance on which `count()` was called will not be changed. The conditions and limit will stay, unless you pass `count(true)`.
+The model instance on which `count()` was called will not be changed. The query will stay in the object, unless you pass `count(true)` to reset it.
 
 #### Where Conditions
 
@@ -104,6 +104,14 @@ $young_dude = (new User($db))
 
 You can only use custom where conditions when using the methods `first()`, `first_or_fail()`, `all()` or `count()`. After an entity was found it should have a primary key, which is sufficient to identify it for further operations.
 
+#### Order by
+
+```php
+<?php
+
+$user->order_by('age DESC');
+```
+
 #### Limit and Offset
 
 ```php
@@ -116,6 +124,8 @@ $user->where('age > ', 54)
     ->limit(10, 30)
     ->all();
 ```
+
+Limit has to come as last statement.
 
 ## Write
 

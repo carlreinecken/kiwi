@@ -82,7 +82,10 @@ print_table($me->all());
         ->create_as($me->id);
 </pre>
 <pre>
-    (new User($db))->all('ORDER BY lastname ASC');
+    (new User($db))
+        ->order_by('lastname ASC')
+        ->limit(10)
+        ->all();
 </pre>
 <?php
 $new_user = (new User($db))
@@ -94,8 +97,10 @@ $new_user = (new User($db))
     ])
     ->create_as($me->id);
 $new_user_id = $new_user->id;
-print_table((new User($db))->all('ORDER BY lastname ASC'));
+$all_users_after_add = (new User($db))->order_by('lastname ASC')->limit(10);
+print_table($all_users_after_add->all());
 ?><pre><?=$new_user->last_query()?></pre><?php
+?><pre><?=$all_users_after_add->last_query()?></pre><?php
 
 // -----------------------------------------------------------------------------
 ?>

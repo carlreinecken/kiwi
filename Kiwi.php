@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.2.4
+ * @version v1.3.0
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 
@@ -47,22 +47,21 @@ abstract class Kiwi {
     public function count($reset_conditions = false)
     {
         $count = 'count(*)';
-        $result = $this->execute('SELECT '.$count.' FROM '.static::$table, $reset_conditions);
+        $result = $this->execute('SELECT '.$count.' FROM '.static::$table, '', $reset_conditions);
         return $result->fetchArray(SQLITE3_ASSOC)[$count];
     }
 
     /**
      * Get all objects from the table with current query
      *
-     * @param String Optional suffix for the query, like an order statement
      * @param Boolean Whether the query conditions should be reset after execution
      * @throws \Exception No objects found
      * @return Self reference
      */
-    public function all($suffix = '', $reset_conditions = false)
+    public function all($reset_conditions = false)
     {
         $objects = [];
-        $result = $this->execute(self::SELECT_FROM_ALL.static::$table, $suffix, $reset_conditions);
+        $result = $this->execute(self::SELECT_FROM_ALL.static::$table, $reset_conditions);
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             array_push($objects, (new $this($this->database))->set($row));
         }
@@ -248,6 +247,19 @@ abstract class Kiwi {
     }
 
     /**
+     * Append an order by statement
+     *
+     * @param String
+     * @return Object Self reference
+     */
+    public function order_by($statement)
+    {
+        $this->conditions .= ' ORDER BY '.$statement;
+
+        return $this;
+    }
+
+    /**
      * Append limit and an optional offset to the sql query
      *
      * @param Integer $limit The amount of expected results
@@ -333,13 +345,12 @@ abstract class Kiwi {
      * Executes a sql query with where conditions
      *
      * @param String Beginning of sql query
-     * @param String Optional suffix for the query, like an order statement
      * @param Boolean Whether the current sql conditions should be reset
      * @return Any The result of the database query
      */
-    private function execute($prefix, $suffix = '', $reset = true)
+    private function execute($prefix, $reset = true)
     {
-        $this->last_query = $prefix.$this->conditions.' '.$suffix;
+        $this->last_query = $prefix.$this->conditions;
         if ($reset) {
             $this->conditions = '';
         }
