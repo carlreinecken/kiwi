@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.2.1
+ * @version v1.2.2
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 
@@ -242,6 +242,21 @@ abstract class Kiwi {
     public function reset()
     {
         $this->set($this->original);
+        return $this;
+    }
+
+    /**
+     * Append limit and an optional offset to the sql query
+     *
+     * @param Integer $limit The amount of expected results
+     * @param Integer $offset
+     * @return Object Self reference
+     */
+    public function limit($limit, $offset = 0)
+    {
+        $this->conditions .= ' LIMIT '.$this->quote((int) $limit);
+        $this->conditions .= ($offset > 0) ? ' OFFSET '.$this->quote((int) $offset) : '';
+
         return $this;
     }
 

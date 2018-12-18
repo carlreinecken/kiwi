@@ -104,6 +104,19 @@ $young_dude = (new User($db))
 
 Every execution will reset all where conditions. You can only use custom where conditions when using the methods `first()`, `first_or_fail()`, `all()` or `count()`. After an entity was found it should have a primary key, which is sufficient to identify it for further operations.
 
+#### Limit and Offset
+
+```php
+<?php
+
+$user->limit(10)->all();
+
+// with offset
+$user->where('age > ', 54)
+    ->limit(10, 30)
+    ->all();
+```
+
 ## Write
 
 #### Mass assignment
