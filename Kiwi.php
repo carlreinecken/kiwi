@@ -3,7 +3,7 @@
 /**
  * Kiwi: A simple abstract SQLite3 database model.
  *
- * @version v1.2.3
+ * @version v1.2.4
  * @copyright Copyright (c) 2018, Carl Reinecken <carl@reinecken.net>
  */
 
@@ -54,14 +54,15 @@ abstract class Kiwi {
     /**
      * Get all objects from the table with current query
      *
+     * @param String Optional suffix for the query, like an order statement
      * @param Boolean Whether the query conditions should be reset after execution
      * @throws \Exception No objects found
      * @return Self reference
      */
-    public function all($reset_conditions = false)
+    public function all($suffix = '', $reset_conditions = false)
     {
         $objects = [];
-        $result = $this->execute(self::SELECT_FROM_ALL.static::$table, $reset_conditions);
+        $result = $this->execute(self::SELECT_FROM_ALL.static::$table, $suffix, $reset_conditions);
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             array_push($objects, (new $this($this->database))->set($row));
         }
@@ -332,12 +333,13 @@ abstract class Kiwi {
      * Executes a sql query with where conditions
      *
      * @param String Beginning of sql query
+     * @param String Optional suffix for the query, like an order statement
      * @param Boolean Whether the current sql conditions should be reset
      * @return Any The result of the database query
      */
-    private function execute($prefix, $reset = true)
+    private function execute($prefix, $suffix = '', $reset = true)
     {
-        $this->last_query = $prefix.$this->conditions;
+        $this->last_query = $prefix.$this->conditions.' '.$suffix;
         if ($reset) {
             $this->conditions = '';
         }

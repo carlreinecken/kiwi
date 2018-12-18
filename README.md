@@ -72,7 +72,7 @@ $users = $user->all();
 
 When no users are found it will return an empty array.
 
-The model instance on which `all()` was called will not be changed. The conditions and limit will stay, unless you pass `all(true)`.
+The model instance on which `all()` was called will not be changed. As first optional parameter you can pass a suffix for the query, which could contain something like `ORDER BY name ASC`. The conditions and limit will stay, unless you pass `all('', true)`.
 
 #### Count
 
